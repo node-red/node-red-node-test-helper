@@ -28,7 +28,7 @@ This is an example test for testing the lower-case node in the [Node-RED documen
 
 ```javascript
 var should = require("should");
-var helper = require("node-red-contrib-lower-case");
+var helper = require("node-red-contrib-test-helper");
 var lowerNode = require("../lower-case.js");
 
 describe('lower-case Node', function () {

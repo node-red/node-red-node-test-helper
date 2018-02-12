@@ -68,7 +68,7 @@ describe('lower-case Node', function () {
 
 ### load(testNode, testFlows, testCredentials, cb)
 
-Load the test node, flows and credentials.
+Load the test node, flows and credentials, creates a 'helper' node.
 
 ### unload()
 

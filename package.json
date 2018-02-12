@@ -9,7 +9,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "express": "4.16.2",
-    "node-red": "^0.18.2",
+    "node-red": "0.18.2",
     "mocha": "~3.4.2",
     "should": "^8.4.0",
     "sinon": "1.17.7",

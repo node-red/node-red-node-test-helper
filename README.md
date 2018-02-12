@@ -86,7 +86,7 @@ TODO
 
 Calls RED.flows.stopFlows() to stop all flows.
 
-### request: function()
+### request()
 
 Create http (supertest) request to the editor/admin url.
 

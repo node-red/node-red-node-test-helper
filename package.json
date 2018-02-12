@@ -1,0 +1,21 @@
+{
+  "name": "node-red-contrib-test-helper",
+  "version": "0.1.0",
+  "description": "Helper module for testing nodes",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha 'test/**/*_spec.js'"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "express": "4.16.2",
+    "node-red": "^0.18.2",
+    "mocha": "~3.4.2",
+    "should": "^8.4.0",
+    "sinon": "1.17.7",
+    "supertest": "3.0.0"
+  },
+  "devDependencies": {
+    "hash-sum": "1.0.2"
+  }
+}

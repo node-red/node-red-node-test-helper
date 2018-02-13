@@ -8,12 +8,12 @@ For examples on how to use this helper, see the Node-RED core node test code and
 
 To add to your node project test dependencies:
 
-    npm install node-red-test-helper --save-dev
+    npm install node-red-contrib-test-helper --save-dev
 
 Inside your node test code:
 
 ```javascript
-var helper = require('node-red-test-helper');
+var helper = require('node-red-contrib-test-helper');
 ```
 
 ## Testing the helper

@@ -1,6 +1,6 @@
 var should = require("should");
 var helper = require("../index.js");
-var lowerNode = require("../lower-case.js");
+var lowerNode = require("./examples/lower-case.js");
 
 describe('lower-case Node', function () {
 
@@ -26,7 +26,7 @@ describe('lower-case Node', function () {
       var n2 = helper.getNode("n2");
       var n1 = helper.getNode("n1");
       n2.on("input", function (msg) {
-        msg.should.have.property('payload', 'uppErcase');
+        msg.should.have.property('payload', 'uppercase');
         done();
       });
       n1.receive({ payload: "UpperCase" });

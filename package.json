@@ -7,6 +7,10 @@
     "test": "mocha 'test/**/*_spec.js'"
   },
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/node-red/node-red-node-test-helper.git"
+  },
   "dependencies": {
     "express": "4.16.2",
     "node-red": "0.18.3",
@@ -17,5 +21,24 @@
   },
   "devDependencies": {
     "hash-sum": "1.0.2"
+  },
+  "contributors": [
+    {
+      "name": "Nick O'Leary"
+    },
+    {
+      "name": "Dave Conway-Jones"
+    },
+    {
+      "name": "Mike Blackstock"
+    }
+  ],
+  "keywords": [
+    "test",
+    "iot",
+    "node"
+  ],
+  "engines": {
+    "node": ">=4"
   }
 }

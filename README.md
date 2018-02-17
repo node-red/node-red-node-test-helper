@@ -1,6 +1,6 @@
 # Node Test Helper
 
-This project pulls out the node helper module from the Node-RED core so that it can used for node contributors.
+This project pulls out the node helper module from the Node-RED core so that it can used for node nodeutors.
 
 For examples on how to use this helper, see the Node-RED core node test code and some node .js files supplied in the `test/examples` folder.
 
@@ -8,12 +8,12 @@ For examples on how to use this helper, see the Node-RED core node test code and
 
 To add to your node project test dependencies:
 
-    npm install node-red-contrib-test-helper --save-dev
+    npm install node-red-node-test-helper --save-dev
 
 Inside your node test code:
 
 ```javascript
-var helper = require('node-red-contrib-test-helper');
+var helper = require('node-red-node-test-helper');
 ```
 
 ## Testing the helper
@@ -28,7 +28,7 @@ This is an example test for testing the lower-case node in the [Node-RED documen
 
 ```javascript
 var should = require("should");
-var helper = require("node-red-contrib-test-helper");
+var helper = require("node-red-node-test-helper");
 var lowerNode = require("../lower-case.js");
 
 describe('lower-case Node', function () {

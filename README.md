@@ -2,8 +2,7 @@
 
 This test-helper module makes the node test framework from the Node-RED core available for node contributors.
 
-Using the test-helper, your tests can start the Node-RED runtime, load a flow and receive messages
-to ensure your node code is correct.
+Using the test-helper, your tests can start the Node-RED runtime, load a flow and receive messages to ensure your node code is correct.
 
 ## Adding to your node project dependencies
 
@@ -11,11 +10,7 @@ To add unit tests your node project test dependencies, add this test helper as f
 
     npm install node-red-node-test-helper --save-dev
 
-This will add this modules to your `package.json` file as a development dependency.
-
-[Mocha](https://mochajs.org/) is a unit test framework for Javascript.  [Should](https://shouldjs.github.io/) is an assertion library used in our example unit tests which will also be added to your porject.  For more information on these frameworks, see their associated documentation.  Depending on your testing needs, you may need to add additional dev dependencies.
-
-Your `project.json` file should now contain something like the following:
+This will add the helper module to your `package.json` file as a development dependency:
 
 ```json
 ...
@@ -25,9 +20,11 @@ Your `project.json` file should now contain something like the following:
 ...
 ```
 
+Both [Mocha](https://mochajs.org/) and [Should](https://shouldjs.github.io/) will be pulled in with the test helper.  Mocha is a unit test framework for Javascript; Should is an assertion library.  For more information on these frameworks, see their associated documentation.
+
 ## Adding test script to `package.json`
 
-To run your tests you can add a test script to your `package.json` file in the `scripts` section.  To run all of the files with the `_spec.js` prefix in the test directory:
+To run your tests you can add a test script to your `package.json` file in the `scripts` section.  To run all of the files with the `_spec.js` prefix in the test directory for example:
 
 ```json
   ...
@@ -37,15 +34,15 @@ To run your tests you can add a test script to your `package.json` file in the `
   ...
 ```
 
-This will allow you to use `npm test` to run your tests.
+This will allow you to use `npm test` on the command line.
 
 ## Creating unit tests
 
-We recommend putting unit test scripts in the `test/` folder of your project and using the `_spec.js` (for specification) suffix naming convention for your tests.  
+We recommend putting unit test scripts in the `test/` folder of your project and using the `*_spec.js` (for specification) suffix naming convention.
 
 ## Example Unit Test
 
-Here is an example test for testing the lower-case node in the [Node-RED documentation](https://nodered.org/docs/creating-nodes/first-node).  Lets name our test script `test/lower-case_spec.js`.
+Here is an example test for testing the lower-case node in the [Node-RED documentation](https://nodered.org/docs/creating-nodes/first-node).  Here we name our test script `test/lower-case_spec.js`.
 
 ### `test/lower-case_spec.js`:
 
@@ -87,31 +84,29 @@ describe('lower-case Node', function () {
 });
 ```
 
-In this example, we require `should` for assertions, the helper module, as well as the `lower-case` node we want to test.
+In this example, we require `should` for assertions, this helper module, as well as the `lower-case` node we want to test, located in the parent directory.
 
 We then have a set of mocha unit tests.  These tests check that the node loads correctly, and ensures it makes the payload string lower case as expected.
 
 ## Getting nodes in the runtime
 
-The asynchronous `helper.load()` method calls the supplied function once the Node-RED server and runtime is read.  We can then call helper methods to get a reference to nodes in the runtime.  For more information on `helper.load()` see the API section below.
+The asynchronous `helper.load()` method calls the supplied callback function once the Node-RED server and runtime is ready.  We can then call the `helper.getNode(id)` method to get a reference to nodes in the runtime.  For more information on these methods see the API section below.
 
 ## Receiving messages from nodes
 
-The second test uses a `helper` node in the runtime connected to the output of our `lower-case` node under test.
+The second test uses a `helper` node in the runtime connected to the output of our `lower-case` node under test.  The `helper` node is a mock node with no functionality. By adding "input" event handlers as in the example, we can check the messages received by the `helper`.
 
-The Helper node is a mock node with no functionality. By adding "input" event handlers as in the example, the helper node can receive a message from the previous `lower-case` node in the flow and check if its contents are as expected.
+To send a message into the `lower-case` node `n1` under test we call `n1.receive({ payload: "UpperCase" })` on that node.  We can then check that the payload is indeed lower case in the `helper` node input event handler.
 
 ## Running your tests
 
 To run your tests:
 
-    npm run
+    npm test
 
-Producing the following output (for example):
+Producing the following output (for this example):
 
-    >npm test
-
-    > red-contrib-lower-case@0.1.0 test /Users/mike/dev/work/node-red-contrib-lower-case
+    > red-contrib-lower-case@0.1.0 test /dev/work/node-red-contrib-lower-case
     > mocha 'test/**/*_spec.js'
 
     lower-case Node
@@ -134,7 +129,7 @@ Loads a flow then starts the flow. This function has the following arguments:
 
 * testNode: (object|array of objects) Module object of a node to be tested returned by require function. This node will be registered, and can be used in testFlows.
 * testFlows: (array of objects) Flow data to test a node. If you want to use the flow data exported from Node-RED editor, need to covert it to JavaScript object using JSON.parse().
-* testCredentials: (object) Optional node credentials. This argument is optional.
+* testCredentials: (object) Optional node credentials.
 * cb: (function) Function to call back when testFlows has been started.
 
 ### unload()

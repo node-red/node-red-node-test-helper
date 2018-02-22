@@ -7,20 +7,20 @@ to ensure your node code is correct.
 
 ## Adding to your node project dependencies
 
-To add unit tests your node project test dependencies, add this test helper, `mocha` and `should` as follows:
+To add unit tests your node project test dependencies, add this test helper as follows:
 
-    npm install mocha should node-red-node-test-helper --save-dev
+    npm install node-red-node-test-helper --save-dev
 
-This will add the those modules to your `package.json` file as a development dependency.  [Mocha](https://mochajs.org/) is a unit test framework for Javascript.  [Should](https://shouldjs.github.io/) is an assertion library used in our example unit tests.  For more information on these frameworks, see their associated documentation.  Depending on your testing needs, other dev dependencies may be added.
+This will add this modules to your `package.json` file as a development dependency.
 
-Your project.json file should contain something like the following:
+[Mocha](https://mochajs.org/) is a unit test framework for Javascript.  [Should](https://shouldjs.github.io/) is an assertion library used in our example unit tests which will also be added to your porject.  For more information on these frameworks, see their associated documentation.  Depending on your testing needs, you may need to add additional dev dependencies.
+
+Your `project.json` file should now contain something like the following:
 
 ```json
 ...
   "devDependencies": {
-    "mocha": "^3.4.2",
-    "node-red-node-test-helper": "^0.1.3",
-    "should": "^8.4.0"
+    "node-red-node-test-helper": "^0.1.4"
   }
 ...
 ```
@@ -122,7 +122,7 @@ Producing the following output (for example):
 
 ## Additional Examples
 
-For additional examples, see the `.js` files supplied in the `test/examples` folder and the Node-RED core node test code at `test/nodes` in [the Node-RED repository](https://github.com/node-red/node-red/tree/master/test/nodes).
+For additional test examples, see the `.js` files supplied in the `test/examples` folder and the Node-RED core node test code at `test/nodes` in [the Node-RED repository](https://github.com/node-red/node-red/tree/master/test/nodes).
 
 ## API
 

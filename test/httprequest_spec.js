@@ -64,6 +64,7 @@ describe('HTTP Request Node', function() {
 
     after(function() {
         testServer.close();
+        helper.stopServer();
     });
     afterEach(function() {
         helper.unload();

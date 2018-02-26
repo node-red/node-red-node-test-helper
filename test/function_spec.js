@@ -29,6 +29,10 @@ describe('function node', function() {
         helper.unload();
     });
 
+    after(function(done) {
+        helper.stopServer(done);
+    });
+
     it('should be loaded', function(done) {
         var flow = [{id:"n1", type:"function", name: "function" }];
         helper.load(functionNode, flow, function() {

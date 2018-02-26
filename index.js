@@ -32,6 +32,8 @@ var events = require('node-red/red/runtime/events');
 
 var app = express();
 
+var util = require('util');
+
 var address = '127.0.0.1';
 var listenPort = 0; // use ephemeral port
 var port;
@@ -41,10 +43,14 @@ var server;
 
 function helperNode(n) {
     RED.nodes.createNode(this, n);
+
+    this.error = function(logMessage,msg) {
+        console.log(logMessage);
+    }
 }
 
 module.exports = {
-    load: function(testNode, testFlows, testCredentials, cb) {
+    load: function(testNode, testFlow, testCredentials, cb) {
         var i;
 
         logSpy = sinon.spy(log,"log");
@@ -61,9 +67,24 @@ module.exports = {
             testCredentials = {};
         }
 
+        if (typeof testFlow === "string") {
+                testFlow = JSON.parse(testFlow);
+        }
+
+        var flowId = testFlow[0].z || "f1";
+
+        testFlow.forEach(function(node) {
+            node.z = flowId;
+            if (node.type == "debug") {
+                node.type ="helper";
+            }
+        });
+
+        testFlow.unshift({id: flowId, type:"tab", label:"Test flow"});
+
         var storage = {
             getFlows: function() {
-                return when.resolve({flows:testFlows,credentials:testCredentials});
+                return when.resolve({flows:testFlow,credentials:testCredentials});
             }
         };
 
@@ -94,7 +115,7 @@ module.exports = {
         }
         flows.load().then(function() {
             flows.startFlows();
-            should.deepEqual(testFlows, flows.getFlows().flows);
+            should.deepEqual(testFlow, flows.getFlows().flows);
             cb();
         });
     },

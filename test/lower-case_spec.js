@@ -9,22 +9,29 @@ describe('lower-case Node', function () {
   });
 
   it('should be loaded', function (done) {
-    var flow = [{ id: "n1", type: "lower-case", name: "lower-case" }];
+
+    // Exported flow pasted as JSON string
+    var flow = '[{"id":"3912a37a.c3818c","type":"lower-case","z":"e316ac4b.c85a2","name":"lower-case","x":240,"y":320,"wires":[[]]}]';
+
     helper.load(lowerNode, flow, function () {
-      var n1 = helper.getNode("n1");
+      var n1 = helper.getNode("3912a37a.c3818c");
       n1.should.have.property('name', 'lower-case');
       done();
     });
   });
 
   it('should make payload lower case', function (done) {
-    var flow = [
-      { id: "n1", type: "lower-case", name: "test name",wires:[["n2"]] },
-      { id: "n2", type: "helper" }
-    ];
+
+    // Exported flow pasted as Javascript
+    var flow = [{"id":"3912a37a.c3818c","type":"lower-case","z":"e316ac4b.c85a2",
+                    "name":"lower-case","x":240,"y":320,"wires":[["7b57d83e.378fd8"]]},
+                {"id":"7b57d83e.378fd8","type":"debug","z":"e316ac4b.c85a2","name":"",
+                    "active":true,"tosidebar":true,"console":false,"tostatus":false,
+                    "complete":"true","x":400,"y":340,"wires":[]}];
+
     helper.load(lowerNode, flow, function () {
-      var n2 = helper.getNode("n2");
-      var n1 = helper.getNode("n1");
+      var n2 = helper.getNode("7b57d83e.378fd8");
+      var n1 = helper.getNode("3912a37a.c3818c");
       n2.on("input", function (msg) {
         msg.should.have.property('payload', 'uppercase');
         done();

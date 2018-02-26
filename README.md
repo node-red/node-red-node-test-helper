@@ -6,7 +6,7 @@ Using the test-helper, your tests can start the Node-RED runtime, load a flow an
 
 ## Adding to your node project dependencies
 
-To add unit tests your node project test dependencies, add this test helper as follows:
+To add unit tests to your node project test dependencies, add this test helper as follows:
 
     npm install node-red-node-test-helper --save-dev
 
@@ -21,6 +21,32 @@ This will add the helper module to your `package.json` file as a development dep
 ```
 
 Both [Mocha](https://mochajs.org/) and [Should](https://shouldjs.github.io/) will be pulled in with the test helper.  Mocha is a unit test framework for Javascript; Should is an assertion library.  For more information on these frameworks, see their associated documentation.
+
+## Alternate linking of node project dependencies
+
+Instead of installing the unit test node project test dependencies, which can pull in a very large number of packages, you can install the unit test packages globally and link them to your node project.  This is a better option if you plan on developing more than one node project.
+
+Install the unit test packages globally as follows:
+
+    npm install -g node-red
+    npm install -g node-red-node-test-helper
+    npm install -g should
+    npm install -g mocha
+    npm install -g sinon
+    npm install -g supertest
+    npm install -g express
+
+In your node project development directory, link the unit test packages as follows:
+
+    npm link node-red
+    npm link node-red-node-test-helper
+    npm link should
+    npm link mocha
+    npm link sinon
+    npm link supertest
+    npm link express
+
+Depending on the nodes in your test flow, you may also need to link in other packages as required.  If a test indicates that a package cannot be found, install the package globally and then link it to your node project the same way as the packages above.
 
 ## Adding test script to `package.json`
 
@@ -88,6 +114,14 @@ In this example, we require `should` for assertions, this helper module, as well
 
 We then have a set of mocha unit tests.  These tests check that the node loads correctly, and ensures it makes the payload string lower case as expected.
 
+## Creating test flows in the Node Red editor
+
+The Node Red editor can be used to generate test flow configurations.  Create a flow in the editor with the node you wish to test and configure them using the node configuration editor. Add `debug` nodes to receive output messages from your test node. `catch` and `status` nodes can also be used to catch errors and status changes from your test node.  It is not necessary to include `inject` nodes as this helper module will allow you to inject test messages.
+
+Highlight the nodes in the test flow and select `Export` then `Clipboard` to copy your test flow configuration, and then paste the JSON string into the test script.  Repeat this process to create different variations of your test flow if required.
+
+When the flow is run in this helper module, `debug` nodes are converted to `helper` nodes.
+
 ## Getting nodes in the runtime
 
 The asynchronous `helper.load()` method calls the supplied callback function once the Node-RED server and runtime is ready.  We can then call the `helper.getNode(id)` method to get a reference to nodes in the runtime.  For more information on these methods see the API section below.
@@ -128,7 +162,7 @@ For additional test examples, see the `.js` files supplied in the `test/examples
 Loads a flow then starts the flow. This function has the following arguments:
 
 * testNode: (object|array of objects) Module object of a node to be tested returned by require function. This node will be registered, and can be used in testFlows.
-* testFlows: (array of objects) Flow data to test a node. If you want to use the flow data exported from Node-RED editor, need to covert it to JavaScript object using JSON.parse().
+* testFlows: (array of objects|JSON string)) Flow configuration to test a node. The flow configuration can be exported from Node-RED editor and pasted as a JSON string.
 * testCredentials: (object) Optional node credentials.
 * cb: (function) Function to call back when testFlows has been started.
 

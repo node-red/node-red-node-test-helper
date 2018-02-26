@@ -66,6 +66,10 @@ describe('websocket Node', function() {
         helper.unload();
     });
 
+    after(function(done) {
+        helper.stopServer(done);
+    });
+
     describe('websocket-listener', function() {
         it('should load', function(done) {
             var flow = [{ id: "n1", type: "websocket-listener", path: "/ws" }];

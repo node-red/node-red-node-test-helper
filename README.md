@@ -1,8 +1,8 @@
 # Node Test Helper
 
-This test-helper module makes the node test framework from the Node-RED core available for node contributors.
+This test-helper module makes the node unit test framework from the Node-RED core available for node contributors.
 
-Using the test-helper, your tests can start the Node-RED runtime, load a flow and receive messages to ensure your node code is correct.
+Using the test-helper, your tests can start the Node-RED runtime, load a test flow, and receive messages to ensure your node code is correct.
 
 ## Adding to your node project dependencies
 
@@ -40,7 +40,7 @@ This will allow you to use `npm test` on the command line.
 
 We recommend putting unit test scripts in the `test/` folder of your project and using the `*_spec.js` (for specification) suffix naming convention.
 
-## Example Unit Test
+## Example unit test
 
 Here is an example test for testing the lower-case node in the [Node-RED documentation](https://nodered.org/docs/creating-nodes/first-node).  Here we name our test script `test/lower-case_spec.js`.
 
@@ -115,9 +115,23 @@ Producing the following output (for this example):
 
     2 passing (50ms)
 
-## Additional Examples
+## Creating test flows with the editor
 
-For additional test examples, see the `.js` files supplied in the `test/examples` folder and the Node-RED core node test code at `test/nodes` in [the Node-RED repository](https://github.com/node-red/node-red/tree/master/test/nodes).
+To create a test flow with the Node-RED editor, export the test flow to the clipboard, and then paste the flow into your unit test code.  One helpful technique to include `helper` nodes in this way is to use a `debug` node as a placeholder for a `helper` node, and then search and replace `"type":"debug"` with  `"type":"helper"` where needed.
+
+## Using `catch` and `status` nodes in test flows
+
+To use `catch` and `status` or other nodes that depend on special handling in the runtime in your test flows, you will often need to add a `tab` to identify the flow, and associated `z` properties to your nodes to associate the nodes with the flow.  For example:
+
+```javascript
+var flow = [{id:"f1", type:"tab", label:"Test flow"},
+  { id: "n1", z:"f1", type: "lower-case", name: "test name",wires:[["n2"]] },
+  { id: "n2", z:"f1", type: "helper" }
+```
+
+## Additional examples
+
+For additional test examples taken from the Node-RED core, see the `.js` files supplied in the `test/examples` folder and the associated test code at `test/nodes` in [the Node-RED repository](https://github.com/node-red/node-red/tree/master/test/nodes).
 
 ## API
 
@@ -128,7 +142,7 @@ For additional test examples, see the `.js` files supplied in the `test/examples
 Loads a flow then starts the flow. This function has the following arguments:
 
 * testNode: (object|array of objects) Module object of a node to be tested returned by require function. This node will be registered, and can be used in testFlows.
-* testFlows: (array of objects) Flow data to test a node. If you want to use the flow data exported from Node-RED editor, need to covert it to JavaScript object using JSON.parse().
+* testFlow: (array of objects) Flow data to test a node. If you want to use flow data exported from Node-RED editor, export the flow to the clipboard and paste the content into your test scripts.
 * testCredentials: (object) Optional node credentials.
 * cb: (function) Function to call back when testFlows has been started.
 
@@ -156,10 +170,11 @@ helper.request().post('/inject/invalid').expect(404).end(done);
 
 ### startServer(done)
 
-Starts a Node-RED server. To start a Node-RED server on each test case:
+Starts a Node-RED server for testing nodes that depend on http or web sockets endpoints like the debug node.
+To start a Node-RED server before all test cases:
 
 ```javascript
-beforeEach(function(done) {
+before(function(done) {
     helper.startServer(done);
 });
 ```

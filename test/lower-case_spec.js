@@ -17,6 +17,15 @@ describe('lower-case Node', function () {
     });
   });
 
+  it('should be loaded in exported flow', function (done) {
+    var flow = [{"id":"3912a37a.c3818c","type":"lower-case","z":"e316ac4b.c85a2","name":"lower-case","x":240,"y":320,"wires":[[]]}];
+    helper.load(lowerNode, flow, function () {
+      var n1 = helper.getNode("3912a37a.c3818c");
+      n1.should.have.property('name', 'lower-case');
+      done();
+    });
+  });
+
   it('should make payload lower case', function (done) {
     var flow = [
       { id: "n1", type: "lower-case", name: "test name",wires:[["n2"]] },

@@ -44,7 +44,7 @@ function helperNode(n) {
 }
 
 module.exports = {
-    load: function(testNode, testFlows, testCredentials, cb) {
+    load: function(testNode, testFlow, testCredentials, cb) {
         var i;
 
         logSpy = sinon.spy(log,"log");
@@ -63,7 +63,7 @@ module.exports = {
 
         var storage = {
             getFlows: function() {
-                return when.resolve({flows:testFlows,credentials:testCredentials});
+                return when.resolve({flows:testFlow,credentials:testCredentials});
             }
         };
 
@@ -94,7 +94,7 @@ module.exports = {
         }
         flows.load().then(function() {
             flows.startFlows();
-            should.deepEqual(testFlows, flows.getFlows().flows);
+            should.deepEqual(testFlow, flows.getFlows().flows);
             cb();
         });
     },

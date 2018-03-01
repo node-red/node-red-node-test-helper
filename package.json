@@ -1,6 +1,6 @@
 {
   "name": "node-red-node-test-helper",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "A test framework for Node-RED nodes",
   "main": "index.js",
   "scripts": {
@@ -31,6 +31,9 @@
     },
     {
       "name": "Mike Blackstock"
+    },
+    {
+      "name": "Dean Cording"
     }
   ],
   "keywords": [

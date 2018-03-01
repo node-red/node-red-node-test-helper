@@ -22,6 +22,32 @@ This will add the helper module to your `package.json` file as a development dep
 
 Both [Mocha](https://mochajs.org/) and [Should](https://shouldjs.github.io/) will be pulled in with the test helper.  Mocha is a unit test framework for Javascript; Should is an assertion library.  For more information on these frameworks, see their associated documentation.
 
+## Alternate linking of node project dependencies
+
+Because test-helper depends on Node-RED and express, installing test-helper as a dev dependency to your node project can pull in a large number of packages.  To reduce the space on disk you can install your dev dependencies globally and then link them to your node project.  This is a better option especially if you are developing more than one node.
+
+Install the unit test packages globally as follows:
+
+    npm install -g node-red
+    npm install -g node-red-node-test-helper
+    npm install -g should
+    npm install -g mocha
+    npm install -g sinon
+    npm install -g supertest
+    npm install -g express
+
+In your node project development directory, link the unit test packages as follows:
+
+    npm link node-red
+    npm link node-red-node-test-helper
+    npm link should
+    npm link mocha
+    npm link sinon
+    npm link supertest
+    npm link express
+
+Depending on the nodes in your test flow, you may also need to link in other packages as required.  If a test indicates that a package cannot be found, and you expect to need it for testing other nodes, consider installing the package globally and then linking it to your node project the same way.
+
 ## Adding test script to `package.json`
 
 To run your tests you can add a test script to your `package.json` file in the `scripts` section.  To run all of the files with the `_spec.js` prefix in the test directory for example:

@@ -20,15 +20,29 @@ var when = require("when");
 var request = require('supertest');
 var express = require("express");
 var http = require('http');
+var path = require('path');
 
-var RED = require("node-red");
-var redNodes = require("node-red/red/runtime/nodes");
-var flows = require("node-red/red/runtime/nodes/flows");
-var credentials = require("node-red/red/runtime/nodes/credentials");
-var comms = require("node-red/red/api/editor/comms.js");
-var log = require("node-red/red/runtime/log.js");
-var context = require("node-red/red/runtime/nodes/context.js");
-var events = require('node-red/red/runtime/events');
+try {
+    var RED = require('node-red');
+    var redNodes = require("node-red/red/runtime/nodes");
+    var flows = require("node-red/red/runtime/nodes/flows");
+    var credentials = require("node-red/red/runtime/nodes/credentials");
+    var comms = require("node-red/red/api/editor/comms.js");
+    var log = require("node-red/red/runtime/log.js");
+    var context = require("node-red/red/runtime/nodes/context.js");
+    var events = require('node-red/red/runtime/events');
+} catch (err) {
+    // no node-red in helper-test dependencies so assume we're testing node-red
+    var nrPath = process.cwd();
+    var RED = require(nrPath+"/red/red.js");
+    var redNodes = require(nrPath+"/red/runtime/nodes");
+    var flows = require(nrPath+"/red/runtime/nodes/flows");
+    var credentials = require(nrPath+"/red/runtime/nodes/credentials");
+    var comms = require(nrPath+"/red/api/editor/comms.js");
+    var log = require(nrPath+"/red/runtime/log.js");
+    var context = require(nrPath+"/red/runtime/nodes/context.js");
+    var events = require(nrPath+"/red/runtime/events.js");
+}
 
 var app = express();
 

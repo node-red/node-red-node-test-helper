@@ -20,33 +20,40 @@ This will add the helper module to your `package.json` file as a development dep
 ...
 ```
 
+The test-helper requires the node-red runtime to run its tests, but Node-RED is **not** installed as a dependency.  The reason for this is that test-helper is (or will be) used in Node-RED core tests, and Node-RED itself has a large number of dependencies that you may not want to download if you already have it installed.
+
+You can install the Node-RED runtime available for your unit tests one of two ways:
+
+1. as a dependency in your project:
+
+```
+npm install node-red
+```
+
+2. or link to Node-RED installed globally (recommended) using:
+
+```
+npm install -g node-red
+npm link node-red
+```
+
 Both [Mocha](https://mochajs.org/) and [Should](https://shouldjs.github.io/) will be pulled in with the test helper.  Mocha is a unit test framework for Javascript; Should is an assertion library.  For more information on these frameworks, see their associated documentation.
 
-## Alternate linking of node project dependencies
+## Linking to additional test dependencies
 
-Because test-helper depends on Node-RED and express, installing test-helper as a dev dependency to your node project can pull in a large number of packages.  To reduce the space on disk you can install your dev dependencies globally and then link them to your node project.  This is a better option especially if you are developing more than one node.
+To reduce disk use further, you can install the test-helper and additional dev dependencies globally and then link them to your node project.  This may be a better option especially if you are developing more than one node.
 
-Install the unit test packages globally as follows:
+See the `package.json` file for the additional dependencies used by test-helper.
 
-    npm install -g node-red
-    npm install -g node-red-node-test-helper
-    npm install -g should
-    npm install -g mocha
-    npm install -g sinon
-    npm install -g supertest
+For example to install express globally:
+
     npm install -g express
 
-In your node project development directory, link the unit test packages as follows:
+Then link to it in your project:
 
-    npm link node-red
-    npm link node-red-node-test-helper
-    npm link should
-    npm link mocha
-    npm link sinon
-    npm link supertest
     npm link express
 
-Depending on the nodes in your test flow, you may also need to link in other packages as required.  If a test indicates that a package cannot be found, and you expect to need it for testing other nodes, consider installing the package globally and then linking it to your node project the same way.
+Depending on the nodes in your test flow, you may also want to link to other global packages.  If a test indicates that a package cannot be found, and you expect to need it for testing other nodes, consider installing the package globally and then linking it to your node project the same way.
 
 ## Adding test script to `package.json`
 

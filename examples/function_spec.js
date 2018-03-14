@@ -17,7 +17,7 @@
 var should = require("should");
 var helper = require("../index.js");
 
-var functionNode = require("./examples/80-function.js");
+var functionNode = require("./nodes/80-function.js");
 
 describe('function node', function() {
 

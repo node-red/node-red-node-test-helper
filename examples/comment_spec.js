@@ -16,7 +16,7 @@
 
 var should = require("should");
 var helper = require("../index.js");
-var commentNode = require("./examples/90-comment.js");
+var commentNode = require("./nodes/90-comment.js");
 
 describe('comment Node', function() {
 

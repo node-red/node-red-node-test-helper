@@ -15,7 +15,7 @@ This will add the helper module to your `package.json` file as a development dep
 ```json
 ...
   "devDependencies": {
-    "node-red-node-test-helper": "^0.1.4"
+    "node-red-node-test-helper": "^0.1.6"
   }
 ...
 ```
@@ -24,10 +24,10 @@ The test-helper requires the node-red runtime to run its tests, but Node-RED is 
 
 You can install the Node-RED runtime available for your unit tests one of two ways:
 
-1. as a dependency in your project:
+1. as a dev dependency in your project:
 
 ```
-npm install node-red
+npm install node-red --save-dev
 ```
 
 2. or link to Node-RED installed globally (recommended) using:
@@ -62,7 +62,7 @@ To run your tests you can add a test script to your `package.json` file in the `
 ```json
   ...
   "scripts": {
-    "test": "mocha 'test/**/*_spec.js'"
+    "test": "mocha \"test/**/*_spec.js\""
   },
   ...
 ```
@@ -140,7 +140,7 @@ To run your tests:
 Producing the following output (for this example):
 
     > red-contrib-lower-case@0.1.0 test /dev/work/node-red-contrib-lower-case
-    > mocha 'test/**/*_spec.js'
+    > mocha "test/**/*_spec.js"
 
     lower-case Node
       ✓ should be loaded
@@ -238,8 +238,8 @@ var logEvents = helper.log().args.filter(function(evt {
 });
 ```
 
-## Testing the helper
+## Running helper examples
 
-    npm run test
+    npm run examples
 
-This runs tests on snaphots of some of the core nodes' Javascript files to ensure the helper is working as expected.
+This runs tests on an included lower-case node (as above) as well as snaphots of some of the core nodes' Javascript files to ensure the helper is working as expected.

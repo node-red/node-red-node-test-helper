@@ -1,6 +1,6 @@
 var should = require("should");
 var helper = require("../index.js");
-var lowerNode = require("./examples/lower-case.js");
+var lowerNode = require("./nodes/lower-case.js");
 
 describe('lower-case Node', function () {
 

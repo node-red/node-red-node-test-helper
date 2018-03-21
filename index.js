@@ -136,7 +136,8 @@ module.exports = {
     },
 
     startServer: function(done) {
-        server = http.createServer(function(req,res) { app(req,res); });
+        server = stoppable(http.createServer(function(req,res) { app(req,res); }), 0);
+
         RED.init(server, {
             SKIP_BUILD_CHECK: true,
             logging:{console:{level:'off'}}
@@ -154,13 +155,13 @@ module.exports = {
     stopServer: function(done) {
         if (server) {
             try {
-                server.on('close', function() {
-                    comms.stop();
-                });
-                server.close(done);
+                comms.stop();
+                server.stop(done);
             } catch(e) {
                 done();
             }
+        } else {
+            done();
         }
     },
 

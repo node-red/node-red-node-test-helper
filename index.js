@@ -20,7 +20,7 @@ var when = require("when");
 var request = require('supertest');
 var express = require("express");
 var http = require('http');
-var path = require('path');
+var stoppable = require('stoppable');
 
 try {
     var RED = require('node-red');

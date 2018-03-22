@@ -20,7 +20,7 @@ This will add the helper module to your `package.json` file as a development dep
 ...
 ```
 
-The test-helper requires the node-red runtime to run its tests, but Node-RED is **not** installed as a dependency.  The reason for this is that test-helper is (or will be) used in Node-RED core tests, and Node-RED itself has a large number of dependencies that you may not want to download if you already have it installed.
+The test-helper requires the node-red runtime, but Node-RED is **not** installed as a dependency.  The reason for this is that test-helper is (or will be) used in Node-RED core tests, and Node-RED itself has a large number of dependencies that you may not want to download if you already have it installed.
 
 You can install the Node-RED runtime available for your unit tests one of two ways:
 
@@ -30,7 +30,7 @@ You can install the Node-RED runtime available for your unit tests one of two wa
 npm install node-red --save-dev
 ```
 
-2. or link to Node-RED installed globally (recommended) using:
+2. or link to Node-RED installed globally using:
 
 ```
 npm install -g node-red
@@ -84,6 +84,8 @@ var should = require("should");
 var helper = require("node-red-node-test-helper");
 var lowerNode = require("../lower-case.js");
 
+helper.init(require.resolve('node-red'));
+
 describe('lower-case Node', function () {
 
   afterEach(function () {
@@ -120,6 +122,10 @@ describe('lower-case Node', function () {
 In this example, we require `should` for assertions, this helper module, as well as the `lower-case` node we want to test, located in the parent directory.
 
 We then have a set of mocha unit tests.  These tests check that the node loads correctly, and ensures it makes the payload string lower case as expected.
+
+## Initializing helper
+
+To get started, we need to tell the helper where to find the node-red runtime.  this is done by calling `helper.init(require.resolve('node-red'))` as shown.
 
 ## Getting nodes in the runtime
 

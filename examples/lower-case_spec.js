@@ -2,6 +2,8 @@ var should = require("should");
 var helper = require("../index.js");
 var lowerNode = require("./nodes/lower-case.js");
 
+helper.init(require.resolve('node-red'));
+
 describe('lower-case Node', function () {
 
   afterEach(function () {

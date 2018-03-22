@@ -22,27 +22,41 @@ var express = require("express");
 var http = require('http');
 var stoppable = require('stoppable');
 
-try {
-    var RED = require('node-red');
-    var redNodes = require("node-red/red/runtime/nodes");
-    var flows = require("node-red/red/runtime/nodes/flows");
-    var credentials = require("node-red/red/runtime/nodes/credentials");
-    var comms = require("node-red/red/api/editor/comms.js");
-    var log = require("node-red/red/runtime/log.js");
-    var context = require("node-red/red/runtime/nodes/context.js");
-    var events = require('node-red/red/runtime/events');
-} catch (err) {
-    // no node-red in helper-test dependencies so assume we're testing node-red
-    var nrPath = process.cwd();
-    var RED = require(nrPath+"/red/red.js");
-    var redNodes = require(nrPath+"/red/runtime/nodes");
-    var flows = require(nrPath+"/red/runtime/nodes/flows");
-    var credentials = require(nrPath+"/red/runtime/nodes/credentials");
-    var comms = require(nrPath+"/red/api/editor/comms.js");
-    var log = require(nrPath+"/red/runtime/log.js");
-    var context = require(nrPath+"/red/runtime/nodes/context.js");
-    var events = require(nrPath+"/red/runtime/events.js");
+var RED;
+var redNodes;
+var flows;
+var credentials;
+var comms;
+var log;
+var context;
+var events;
+
+function initRuntime(requirePath) {
+
+    try {
+        RED = require(requirePath);
+        var prefix = requirePath.substring(0, requirePath.indexOf('/red.js'));
+        redNodes = require(prefix+"/runtime/nodes");
+        flows = require(prefix+"/runtime/nodes/flows");
+        credentials = require(prefix+"/runtime/nodes/credentials");
+        comms = require(prefix+"/api/editor/comms");
+        log = require(prefix+"/runtime/log");
+        context = require(prefix+"/runtime/nodes/context");
+        events = require(prefix+"/runtime/events");
+    } catch (err) {
+        // ignore, assume init will be called again by a test script supplying the runtime path
+    }
 }
+
+// assume we have node red as a dependency
+try {
+    var runtimePath = require.resolve('node-red');
+} catch (err) {
+    // if not, we are running in the core
+    runtimePath = process.cwd()+"/red/red.js";
+}
+
+initRuntime(runtimePath);
 
 var app = express();
 
@@ -58,6 +72,7 @@ function helperNode(n) {
 }
 
 module.exports = {
+    init: initRuntime,
     load: function(testNode, testFlow, testCredentials, cb) {
         var i;
 

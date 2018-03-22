@@ -16,6 +16,8 @@
 
 var should = require("should");
 var helper = require("../index.js");
+helper.init(require.resolve('node-red'));
+
 var commentNode = require("./nodes/90-comment.js");
 
 describe('comment Node', function() {

@@ -58,7 +58,6 @@ function initRuntime(requirePath) {
 
         // access internal Node-RED runtime methods
         var prefix = requirePath.substring(0, requirePath.indexOf('/red.js'));
-        flows = require(prefix+"/runtime/nodes/flows");
         context = require(prefix+"/runtime/nodes/context");
         comms = require(prefix+"/api/editor/comms");
     } catch (err) {
@@ -148,8 +147,7 @@ module.exports = {
     },
 
     getNode: function(id) {
-        // internal API
-        return flows.get(id);
+        return redNodes.getNode(id);
     },
 
     clearFlows: function() {

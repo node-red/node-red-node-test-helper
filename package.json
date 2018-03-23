@@ -14,10 +14,11 @@
   },
   "dependencies": {
     "express": "4.16.2",
+    "read-pkg-up": "^3.0.0",
     "should": "^8.4.0",
     "sinon": "1.17.7",
-    "supertest": "3.0.0",
     "stoppable": "boneskull/stoppable#boneskull-patch-1",
+    "supertest": "3.0.0",
     "when": "3.7.8"
   },
   "peerDependencies": {

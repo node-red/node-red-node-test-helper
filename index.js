@@ -14,6 +14,7 @@
  * limitations under the License.
  **/
 
+var path = require("path");
 var should = require("should");
 var sinon = require("sinon");
 var when = require("when");
@@ -21,39 +22,48 @@ var request = require('supertest');
 var express = require("express");
 var http = require('http');
 var stoppable = require('stoppable');
+const readPkgUp = require('read-pkg-up');
 
 var RED;
 var redNodes;
 var flows;
-var credentials;
 var comms;
 var log;
 var context;
 var events;
 
+var runtimePath;
+var package = readPkgUp.sync();
+if (package.pkg.name === 'node-red') {
+    runtimePath = path.join(process.cwd(),package.pkg.main);
+    initRuntime(runtimePath);
+} else {
+    try {
+        runtimePath = require.resolve('node-red');
+        initRuntime(runtimePath);
+    } catch (err) {
+        // no runtime path - init must be called from test
+    }
+}
+
 function initRuntime(requirePath) {
 
     try {
         RED = require(requirePath);
+
+        // public runtime API
+        redNodes = RED.nodes;
+        events = RED.events;
+        log = RED.log;
+
+        // access internal Node-RED runtime methods
         var prefix = requirePath.substring(0, requirePath.indexOf('/red.js'));
-        redNodes = require(prefix+"/runtime/nodes");
         flows = require(prefix+"/runtime/nodes/flows");
-        credentials = require(prefix+"/runtime/nodes/credentials");
-        comms = require(prefix+"/api/editor/comms");
-        log = require(prefix+"/runtime/log");
         context = require(prefix+"/runtime/nodes/context");
-        events = require(prefix+"/runtime/events");
+        comms = require(prefix+"/api/editor/comms");
     } catch (err) {
         // ignore, assume init will be called again by a test script supplying the runtime path
     }
-}
-
-// assume we have node red as a dependency
-try {
-    var runtimePath = require.resolve('node-red');
-} catch (err) {
-    // if not, we are running in the core
-    runtimePath = process.cwd()+"/red/red.js";
 }
 
 initRuntime(runtimePath);
@@ -121,9 +131,9 @@ module.exports = {
         } else {
             testNode(red);
         }
-        flows.load().then(function() {
-            flows.startFlows();
-            should.deepEqual(testFlow, flows.getFlows().flows);
+        redNodes.loadFlows().then(function() {
+            redNodes.startFlows();
+            should.deepEqual(testFlow, redNodes.getFlows().flows);
             cb();
         });
     },
@@ -132,18 +142,18 @@ module.exports = {
         // TODO: any other state to remove between tests?
         redNodes.clearRegistry();
         logSpy.restore();
+        // internal API
         context.clean({allNodes:[]});
-        return flows.stopFlows();
+        return redNodes.stopFlows();
     },
 
     getNode: function(id) {
+        // internal API
         return flows.get(id);
     },
 
-    credentials: credentials,
-
     clearFlows: function() {
-        return flows.stopFlows();
+        return redNodes.stopFlows();
     },
 
     request: function() {
@@ -161,6 +171,7 @@ module.exports = {
         server.on('listening', function() {
             port = server.address().port;
             url = 'http://' + address + ':' + port;
+            // internal API
             comms.start();
             done();
         });
@@ -170,6 +181,7 @@ module.exports = {
     stopServer: function(done) {
         if (server) {
             try {
+                // internal API
                 comms.stop();
                 server.stop(done);
             } catch(e) {

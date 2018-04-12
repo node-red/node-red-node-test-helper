@@ -10,7 +10,7 @@ Node-RED is required by the helper as a peer dependency, meaning it must be inst
 
     npm install node-red-node-test-helper node-red --save-dev
 
-This will add and the helper module to your `package.json` file:
+This will add the helper module to your `package.json` file:
 
 ```json
 ...

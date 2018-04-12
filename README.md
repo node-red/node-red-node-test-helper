@@ -6,54 +6,20 @@ Using the test-helper, your tests can start the Node-RED runtime, load a test fl
 
 ## Adding to your node project dependencies
 
-To add unit tests your node project test dependencies, add this test helper as follows:
+Node-RED is required by the helper as a peer dependency, meaning it must be installed along with the helper itself.  To create unit tests for your node project, add this test helper and Node-RED as follows:
 
-    npm install node-red-node-test-helper --save-dev
+    npm install node-red-node-test-helper node-red --save-dev
 
-This will add the helper module to your `package.json` file as a development dependency:
+This will add the helper module to your `package.json` file:
 
 ```json
 ...
   "devDependencies": {
+    "node-red":"^0.18.4",
     "node-red-node-test-helper": "^0.1.6"
   }
 ...
 ```
-
-The test-helper requires the node-red runtime to run its tests, but Node-RED is **not** installed as a dependency.  The reason for this is that test-helper is (or will be) used in Node-RED core tests, and Node-RED itself has a large number of dependencies that you may not want to download if you already have it installed.
-
-You can install the Node-RED runtime available for your unit tests one of two ways:
-
-1. as a dev dependency in your project:
-
-```
-npm install node-red --save-dev
-```
-
-2. or link to Node-RED installed globally (recommended) using:
-
-```
-npm install -g node-red
-npm link node-red
-```
-
-Both [Mocha](https://mochajs.org/) and [Should](https://shouldjs.github.io/) will be pulled in with the test helper.  Mocha is a unit test framework for Javascript; Should is an assertion library.  For more information on these frameworks, see their associated documentation.
-
-## Linking to additional test dependencies
-
-To reduce disk use further, you can install the test-helper and additional dev dependencies globally and then link them to your node project.  This may be a better option especially if you are developing more than one node.
-
-See the `package.json` file for the additional dependencies used by test-helper.
-
-For example to install express globally:
-
-    npm install -g express
-
-Then link to it in your project:
-
-    npm link express
-
-Depending on the nodes in your test flow, you may also want to link to other global packages.  If a test indicates that a package cannot be found, and you expect to need it for testing other nodes, consider installing the package globally and then linking it to your node project the same way.
 
 ## Adding test script to `package.json`
 
@@ -83,6 +49,8 @@ Here is an example test for testing the lower-case node in the [Node-RED documen
 var should = require("should");
 var helper = require("node-red-node-test-helper");
 var lowerNode = require("../lower-case.js");
+
+helper.init(require.resolve('node-red'));
 
 describe('lower-case Node', function () {
 
@@ -120,6 +88,10 @@ describe('lower-case Node', function () {
 In this example, we require `should` for assertions, this helper module, as well as the `lower-case` node we want to test, located in the parent directory.
 
 We then have a set of mocha unit tests.  These tests check that the node loads correctly, and ensures it makes the payload string lower case as expected.
+
+## Initializing Helper
+
+To get started, we need to tell the helper where to find the node-red runtime.  this is done by calling `helper.init(require.resolve('node-red'))` as shown.
 
 ## Getting nodes in the runtime
 

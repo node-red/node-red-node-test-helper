@@ -14,6 +14,7 @@
  * limitations under the License.
  **/
 
+var path = require("path");
 var should = require("should");
 var sinon = require("sinon");
 var when = require("when");
@@ -21,28 +22,50 @@ var request = require('supertest');
 var express = require("express");
 var http = require('http');
 var stoppable = require('stoppable');
+const readPkgUp = require('read-pkg-up');
 
-try {
-    var RED = require('node-red');
-    var redNodes = require("node-red/red/runtime/nodes");
-    var flows = require("node-red/red/runtime/nodes/flows");
-    var credentials = require("node-red/red/runtime/nodes/credentials");
-    var comms = require("node-red/red/api/editor/comms.js");
-    var log = require("node-red/red/runtime/log.js");
-    var context = require("node-red/red/runtime/nodes/context.js");
-    var events = require('node-red/red/runtime/events');
-} catch (err) {
-    // no node-red in helper-test dependencies so assume we're testing node-red
-    var nrPath = process.cwd();
-    var RED = require(nrPath+"/red/red.js");
-    var redNodes = require(nrPath+"/red/runtime/nodes");
-    var flows = require(nrPath+"/red/runtime/nodes/flows");
-    var credentials = require(nrPath+"/red/runtime/nodes/credentials");
-    var comms = require(nrPath+"/red/api/editor/comms.js");
-    var log = require(nrPath+"/red/runtime/log.js");
-    var context = require(nrPath+"/red/runtime/nodes/context.js");
-    var events = require(nrPath+"/red/runtime/events.js");
+var RED;
+var redNodes;
+var flows;
+var comms;
+var log;
+var context;
+var events;
+
+var runtimePath;
+var package = readPkgUp.sync();
+if (package.pkg.name === 'node-red') {
+    runtimePath = path.join(process.cwd(),package.pkg.main);
+    initRuntime(runtimePath);
+} else {
+    try {
+        runtimePath = require.resolve('node-red');
+        initRuntime(runtimePath);
+    } catch (err) {
+        // no runtime path - init must be called from test
+    }
 }
+
+function initRuntime(requirePath) {
+
+    try {
+        RED = require(requirePath);
+
+        // public runtime API
+        redNodes = RED.nodes;
+        events = RED.events;
+        log = RED.log;
+
+        // access internal Node-RED runtime methods
+        var prefix = requirePath.substring(0, requirePath.indexOf('/red.js'));
+        context = require(prefix+"/runtime/nodes/context");
+        comms = require(prefix+"/api/editor/comms");
+    } catch (err) {
+        // ignore, assume init will be called again by a test script supplying the runtime path
+    }
+}
+
+initRuntime(runtimePath);
 
 var app = express();
 
@@ -58,6 +81,7 @@ function helperNode(n) {
 }
 
 module.exports = {
+    init: initRuntime,
     load: function(testNode, testFlow, testCredentials, cb) {
         var i;
 
@@ -98,7 +122,7 @@ module.exports = {
         };
 
         redNodes.init({events:events,settings:settings, storage:storage,log:log,});
-        RED.nodes.registerType("helper", helperNode);
+        redNodes.registerType("helper", helperNode);
         if (Array.isArray(testNode)) {
             for (i = 0; i < testNode.length; i++) {
                 testNode[i](red);
@@ -106,9 +130,9 @@ module.exports = {
         } else {
             testNode(red);
         }
-        flows.load().then(function() {
-            flows.startFlows();
-            should.deepEqual(testFlow, flows.getFlows().flows);
+        redNodes.loadFlows().then(function() {
+            redNodes.startFlows();
+            should.deepEqual(testFlow, redNodes.getFlows().flows);
             cb();
         });
     },
@@ -117,18 +141,17 @@ module.exports = {
         // TODO: any other state to remove between tests?
         redNodes.clearRegistry();
         logSpy.restore();
+        // internal API
         context.clean({allNodes:[]});
-        return flows.stopFlows();
+        return redNodes.stopFlows();
     },
 
     getNode: function(id) {
-        return flows.get(id);
+        return redNodes.getNode(id);
     },
 
-    credentials: credentials,
-
     clearFlows: function() {
-        return flows.stopFlows();
+        return redNodes.stopFlows();
     },
 
     request: function() {
@@ -146,6 +169,7 @@ module.exports = {
         server.on('listening', function() {
             port = server.address().port;
             url = 'http://' + address + ':' + port;
+            // internal API
             comms.start();
             done();
         });
@@ -155,6 +179,7 @@ module.exports = {
     stopServer: function(done) {
         if (server) {
             try {
+                // internal API
                 comms.stop();
                 server.stop(done);
             } catch(e) {

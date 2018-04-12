@@ -122,7 +122,7 @@ module.exports = {
         };
 
         redNodes.init({events:events,settings:settings, storage:storage,log:log,});
-        RED.nodes.registerType("helper", helperNode);
+        redNodes.registerType("helper", helperNode);
         if (Array.isArray(testNode)) {
             for (i = 0; i < testNode.length; i++) {
                 testNode[i](red);

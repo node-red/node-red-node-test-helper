@@ -21,6 +21,12 @@ This will add the helper module to your `package.json` file:
 ...
 ```
 
+## Using a local Node-RED install for tests
+
+If you already have Node-RED installed for development, you can create a symbolic link to your local installation.  For example, if Node-RED is cloned in your `~/projects` folder use:
+
+    npm install ~/projects/node-red --no-save
+
 ## Adding test script to `package.json`
 
 To run your tests you can add a test script to your `package.json` file in the `scripts` section.  To run all of the files with the `_spec.js` prefix in the test directory for example:

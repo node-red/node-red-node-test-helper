@@ -108,7 +108,7 @@ class NodeTestHelper extends EventEmitter {
         }
     }
 
-    load(testNode, testFlow, testCredentials, cb) {
+    load(testNode, testFlow, testCredentials, testSettings, cb) {
         const log = this._log;
         const logSpy = this._logSpy = this._sandbox.spy(log, 'log');
         logSpy.FATAL = log.FATAL;
@@ -120,9 +120,13 @@ class NodeTestHelper extends EventEmitter {
         logSpy.METRIC = log.METRIC;
         this.log = () => logSpy;
 
-        if (typeof testCredentials === 'function') {
+        if (typeof testSettings === 'function') {
+            cb = testSettings;
+            testSettings = {};
+        } else if (typeof testCredentials === 'function') {
             cb = testCredentials;
             testCredentials = {};
+            testSettings = {};
         }
 
         var storage = {
@@ -131,9 +135,9 @@ class NodeTestHelper extends EventEmitter {
             }
         };
 
-        var settings = {
+        const settings = Object.assign({
             available: function() { return false; }
-        };
+        }, testSettings || {});
 
         var red = {
             _: v => v
@@ -145,6 +149,7 @@ class NodeTestHelper extends EventEmitter {
                 Object.defineProperty(red, prop, propDescriptor);
             });
 
+        red.settings = testSettings || {};
         const redNodes = this._redNodes;
         redNodes.init({
             events: this._events,

@@ -38,9 +38,13 @@ function findRuntimePath() {
     if (upPkg.pkg.name === 'node-red') {
         return path.join(path.dirname(upPkg.path), upPkg.pkg.main);
     }
-    // case 2: NR is installed alongside node-red-node-test-helper
-    if ((upPkg.pkg.dependencies && upPkg.pkg.dependencies['node-red'])
-        || (upPkg.pkg.devDependencies && upPkg.pkg.devDependencies['node-red'])) {
+    // case 2: NR is resolvable from here
+    try {
+        return require.resolve('node-red');
+    } catch (ignored) {}
+    // case 3: NR is installed alongside node-red-node-test-helper
+    if ((upPkg.pkg.dependencies && upPkg.pkg.dependencies['node-red']) ||
+        (upPkg.pkg.devDependencies && upPkg.pkg.devDependencies['node-red'])) {
         const dirpath = path.join(path.dirname(upPkg.path), 'node_modules', 'node-red');
         try {
             const pkg = require(path.join(dirpath, 'package.json'));
@@ -52,12 +56,12 @@ function findRuntimePath() {
 class NodeTestHelper extends EventEmitter {
     constructor() {
         super();
-        
+
         this._sandbox = sinon.createSandbox();
-        
+
         this._address = '127.0.0.1';
         this._listenPort = 0; // ephemeral
-        
+
         this.init();
     }
 
@@ -86,7 +90,7 @@ class NodeTestHelper extends EventEmitter {
                     apply: (target, thisArg, args) => {
                         const retval = Reflect.apply(target, thisArg, args);
                         process.nextTick(function(call) { return () => {
-                            NodePrototype.emit.call(thisArg, `call:${methodName}`, call);
+                                NodePrototype.emit.call(thisArg, `call:${methodName}`, call);
                         }}(spy.lastCall));
                         return retval;
                     }
@@ -122,7 +126,7 @@ class NodeTestHelper extends EventEmitter {
         }
 
         var storage = {
-            getFlows: function() {
+            getFlows: function () {
                 return when.resolve({flows:testFlow,credentials:testCredentials});
             }
         };
@@ -136,17 +140,17 @@ class NodeTestHelper extends EventEmitter {
         };
 
         Object.keys(this._RED).filter(prop => !/^(init|start|stop)$/.test(prop))
-        .forEach(prop => {
-            const propDescriptor = Object.getOwnPropertyDescriptor(this._RED, prop);
-            Object.defineProperty(red, prop, propDescriptor);
-        });
+            .forEach(prop => {
+                const propDescriptor = Object.getOwnPropertyDescriptor(this._RED, prop);
+                Object.defineProperty(red, prop, propDescriptor);
+            });
 
         const redNodes = this._redNodes;
         redNodes.init({
             events: this._events,
             settings: settings,
-            storage:storage,
-            log:this._log
+            storage: storage,
+            log: this._log
         });
         redNodes.registerType("helper", function (n) {
             redNodes.createNode(this, n);
@@ -198,8 +202,8 @@ class NodeTestHelper extends EventEmitter {
 
     startServer(done) {
         this._app = express();
-        const server = stoppable(http.createServer((req,res) => {
-            this._app(req,res);
+        const server = stoppable(http.createServer((req, res) => {
+            this._app(req, res);
         }), 0);
 
         this._RED.init(server, {
@@ -224,7 +228,7 @@ class NodeTestHelper extends EventEmitter {
                 // internal API
                 this._comms.stop();
                 this._server.stop(done);
-            } catch(e) {
+            } catch (e) {
                 done();
             }
         } else {

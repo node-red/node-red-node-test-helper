@@ -42,7 +42,7 @@ function findRuntimePath() {
     if ((upPkg.pkg.dependencies && upPkg.pkg.dependencies['node-red'])
         || (upPkg.pkg.devDependencies && upPkg.pkg.devDependencies['node-red'])) {
         const dirpath = path.join(path.dirname(upPkg.path), 'node_modules', 'node-red');
-    try {
+        try {
             const pkg = require(path.join(dirpath, 'package.json'));
             return path.join(dirpath, pkg.main);
         } catch (ignored) {}
@@ -52,12 +52,12 @@ function findRuntimePath() {
 class NodeTestHelper extends EventEmitter {
     constructor() {
         super();
-
+        
         this._sandbox = sinon.createSandbox();
-
+        
         this._address = '127.0.0.1';
         this._listenPort = 0; // ephemeral
-
+        
         this.init();
     }
 
@@ -97,7 +97,8 @@ class NodeTestHelper extends EventEmitter {
         }
     }
 
-    init(runtimePath = findRuntimePath()) {
+    init(runtimePath) {
+        runtimePath = runtimePath || findRuntimePath();
         if (runtimePath) {
             this._initRuntime(runtimePath);
         }

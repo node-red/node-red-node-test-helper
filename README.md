@@ -16,7 +16,7 @@ This will add the helper module to your `package.json` file:
 ...
   "devDependencies": {
     "node-red":"^0.18.4",
-    "node-red-node-test-helper": "^0.1.6"
+    "node-red-node-test-helper": "^0.1.8"
   }
 ...
 ```

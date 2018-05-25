@@ -58,10 +58,10 @@ function initRuntime(requirePath) {
         log = RED.log;
 
         // access internal Node-RED runtime methods
-        var prefix = requirePath.substring(0, requirePath.indexOf('/red.js'));
-        context = require(prefix+"/runtime/nodes/context");
-        comms = require(prefix+"/api/editor/comms");
-        credentials = require(prefix+"/runtime/nodes/credentials");
+        var prefix = requirePath.substring(0, requirePath.indexOf('red.js'));
+        context = require(prefix+"runtime/nodes/context");
+        comms = require(prefix+"api/editor/comms");
+        credentials = require(prefix+"runtime/nodes/credentials");
 
     } catch (err) {
         // ignore, assume init will be called again by a test script supplying the runtime path

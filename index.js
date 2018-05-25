@@ -34,20 +34,34 @@ var events;
 var credentials;
 
 var runtimePath;
-var package = readPkgUp.sync();
-if (package.pkg.name === 'node-red') {
-    runtimePath = path.join(process.cwd(),package.pkg.main);
-    initRuntime(runtimePath);
-} else {
+
+function findRuntimePath() {
+    const upPkg = readPkgUp.sync();
+    // case 1: we're in NR itself
+    if (upPkg.pkg.name === 'node-red') {
+        return path.join(path.dirname(upPkg.path), upPkg.pkg.main);
+    }
+    // case 2: NR is resolvable from here
     try {
-        runtimePath = require.resolve('node-red');
-        initRuntime(runtimePath);
-    } catch (err) {
-        // no runtime path - init must be called from test
+        return require.resolve('node-red');
+    } catch (ignored) {}
+    // case 3: NR is installed alongside node-red-node-test-helper
+    if ((upPkg.pkg.dependencies && upPkg.pkg.dependencies['node-red']) ||
+        (upPkg.pkg.devDependencies && upPkg.pkg.devDependencies['node-red'])) {
+        const dirpath = path.join(path.dirname(upPkg.path), 'node_modules', 'node-red');
+        try {
+            const pkg = require(path.join(dirpath, 'package.json'));
+            return path.join(dirpath, pkg.main);
+        } catch (ignored) {}
     }
 }
 
 function initRuntime(requirePath) {
+
+    requirePath = requirePath || findRuntimePath();
+    if (!requirePath) {
+        return;
+    }
 
     try {
         RED = require(requirePath);
@@ -57,18 +71,18 @@ function initRuntime(requirePath) {
         events = RED.events;
         log = RED.log;
 
-        // access internal Node-RED runtime methods
-        var prefix = requirePath.substring(0, requirePath.indexOf('red.js'));
-        context = require(prefix+"runtime/nodes/context");
-        comms = require(prefix+"api/editor/comms");
-        credentials = require(prefix+"runtime/nodes/credentials");
+        // access some private/internal Node-RED runtime
+        const prefix = path.dirname(requirePath);
+        context = require(path.join(prefix,'runtime','nodes','context'));
+        comms = require(path.join(prefix, 'api','editor','comms'));
+        credentials = require(path.join(prefix, 'runtime', 'nodes', 'credentials'));
 
     } catch (err) {
         // ignore, assume init will be called again by a test script supplying the runtime path
     }
 }
 
-initRuntime(runtimePath);
+initRuntime();
 
 var app = express();
 

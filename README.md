@@ -75,7 +75,7 @@ describe('lower-case Node', function () {
 
   it('should make payload lower case', function (done) {
     var flow = [
-      { id: "n1", type: "lower-case", name: "lower-case",wires:[["n2"]] },
+      { id: "n1", type: "lower-case", name: "lower-case", wires: [["n2"]] },
       { id: "n2", type: "helper" }
     ];
     helper.load(lowerNode, flow, function () {
@@ -117,7 +117,7 @@ To run your tests:
 
 Producing the following output (for this example):
 
-    > red-contrib-lower-case@0.1.0 test /dev/work/node-red-contrib-lower-case
+    > node-red-contrib-lower-case@0.1.0 test /dev/work/node-red-contrib-lower-case
     > mocha "test/**/*_spec.js"
 
     lower-case Node

@@ -60,8 +60,13 @@ helper.init(require.resolve('node-red'));
 
 describe('lower-case Node', function () {
 
-  afterEach(function () {
-    helper.unload();
+  beforeEach(function (done) {
+      helper.startServer(done);
+  });
+
+  afterEach(function (done) {
+      helper.unload();
+      helper.stopServer(done);
   });
 
   it('should be loaded', function (done) {
@@ -108,6 +113,142 @@ The asynchronous `helper.load()` method calls the supplied callback function onc
 The second test uses a `helper` node in the runtime connected to the output of our `lower-case` node under test.  The `helper` node is a mock node with no functionality. By adding "input" event handlers as in the example, we can check the messages received by the `helper`.
 
 To send a message into the `lower-case` node `n1` under test we call `n1.receive({ payload: "UpperCase" })` on that node.  We can then check that the payload is indeed lower case in the `helper` node input event handler.
+
+## Working with Spies
+
+A Spy ([docs](http://sinonjs.org/releases/v5.0.6/spies/)) helps you collect information about how many times a function was called, with what, what it returned, etc.
+
+This helper library automatically creates spies for the following functions on `Node.prototype` (these are the same functions as mentioned in the ["Creating Nodes" guide](https://nodered.org/docs/creating-nodes/node-js)):
+
+- `trace()`
+- `debug()`
+- `warn()`
+- `log()`
+- `status()`
+- `send()`
+
+> **Warning:** Don't try to spy on these functions yourself with `sinon.spy()`; since they are already spies, Sinon will throw an exception!
+
+### Synchronous Example: Initialization
+
+The `FooNode` `Node` will call `warn()` when it's initialized/constructed if `somethingGood` isn't present in the config, like so:
+
+```js
+// /path/to/foo-node.js
+module.exports = function FooNode (config) {
+  RED.nodes.createNode(this, config);
+
+  if (!config.somethingGood) {
+    this.warn('badness');
+  }
+}
+```
+
+You can then assert:
+
+```js
+// /path/to/test/foo-node_spec.js
+const FooNode = require('/path/to/foo-node');
+
+it('should warn if the `somethingGood` prop is falsy', function (done) {
+  const flow = {
+    name: 'n1',
+    somethingGood: false,
+    /* ..etc.. */
+  };
+  helper.load(FooNode, flow, function () {
+    n1.warn.should.be.calledWithExactly('badness');
+    done();
+  });
+});
+```
+
+### Synchronous Example: Input
+
+When it receives input, `FooNode` will immediately call `error()` if `msg.omg` is `true`:
+
+```js
+// somewhere in FooNode constructor
+this.on('input', msg => {
+  if (msg.omg) {
+    this.error('lolwtf');
+  }
+  // ..etc..
+});
+```
+
+Here's an example of how to make that assertion:
+
+```js
+describe('if `omg` in input message', function () {
+  it('should call `error` with "lolwtf" ', function (done) {
+    const flow = {
+      name: 'n1',
+      /* ..etc.. */
+    };
+    helper.load(FooNode, flow, function () {
+      const n1 = helper.getNode('n1')
+      n1.receive({omg: true});
+      n1.on('input', () => {
+        n1.warn.should.be.calledWithExactly('lolwtf');
+        done();
+      });
+    });
+  });
+});
+```
+
+### Asynchronous Example
+
+Later in `FooNode`'s `input` listener, `warn()` may *asynchronously* be called, like so:
+
+```js
+// somewhere in FooNode constructor function
+this.on('input', msg => {
+  if (msg.omg) {
+    this.error('lolwtf');
+  }
+  // ..etc..
+
+  Promise.resolve()
+    .then(() => {
+      if (msg.somethingBadAndWeird) {
+        this.warn('bad weirdness');
+      }
+    });
+});
+```
+
+The strategy in the previous example used for testing behavior of `msg.omg` will *not* work!  `n1.warn.should.be.calledWithExactly('bad weirdness')` will throw an `AssertionError`, because `warn()` hasn't been called yet; `EventEmitter`s are synchronous, and the test's `input` listener is called directly after the `input` listener in `FooNode`'s function finished--but *before* the `Promise` is resolved!
+
+Since we don't know *when* exactly `warn()` will get called (short of the slow, race-condition-prone solution of using a `setTimeout` and waiting *n* milliseconds, *then* checking), we need a different way to inspect the call.  Miraculously, this helper module provides a solution.
+
+The helper will cause the `FooNode` to asynchronously emit an event when `warn` is called (as well as the other methods in the above list).  The event name will be of the format `call:<methodName>`; in this case, `methodName` is `warn`, so the event name is `call:warn`.  The event Will pass a single argument: a Spy Call object ([docs](http://sinonjs.org/releases/v5.0.6/spy-call/)) corresponding to the latest method call.  You can then make an assertion against this Spy Call argument, like so:
+
+```js
+describe('if `somethingBadAndWeird` in input msg', function () {
+  it('should call "warn" with "bad weirdness" ', function (done) {
+    const flow = {
+      name: 'n1',
+      /* ..etc.. */
+    };
+    helper.load(FooNode, flow, function () {
+      const n1 = helper.getNode('n1')
+      n1.receive({somethingBadAndWeird: true});
+      // because the emit happens asynchronously, this listener
+      // will be registered before `call:warn` is emitted.
+      n1.on('call:warn', call => {
+        call.should.be.calledWithExactly('bad weirdness');
+        done();
+      });
+    });
+  });
+});
+```
+
+As you can see, looks very similar to the synchronous solution; the only differences are the event name and assertion target.
+
+> **Note**: The "asynchronous" strategy will also work *if and only if* a synchronous call to the spy is *still the most recent* when we attempt to make the assertion.  This can lead to subtle bugs when refactoring, so exercise care when choosing which strategy to use.
 
 ## Running your tests
 

@@ -15,8 +15,9 @@
   "dependencies": {
     "express": "4.16.2",
     "read-pkg-up": "3.0.0",
-    "should": "8.4.0",
-    "sinon": "1.17.7",
+    "should": "^13.2.1",
+    "should-sinon": "0.0.6",
+    "sinon": "5.0.3",
     "stoppable": "1.0.6",
     "supertest": "3.0.0",
     "when": "3.7.8"

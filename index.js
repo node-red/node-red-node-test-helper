@@ -25,6 +25,7 @@ const express = require("express");
 const http = require('http');
 const stoppable = require('stoppable');
 const readPkgUp = require('read-pkg-up');
+const semver = require('semver');
 const EventEmitter = require('events').EventEmitter;
 
 const PROXY_METHODS = ['log', 'status', 'warn', 'error', 'debug', 'trace', 'send'];
@@ -36,7 +37,11 @@ function findRuntimePath() {
     const upPkg = readPkgUp.sync();
     // case 1: we're in NR itself
     if (upPkg.pkg.name === 'node-red') {
-        return path.join(path.dirname(upPkg.path), upPkg.pkg.main);
+        if (semver.ltr(upPkg.pkg.version,"<0.20.0")) {
+            return path.join(path.dirname(upPkg.path), upPkg.pkg.main);
+        } else {
+            return path.join(path.dirname(upPkg.path),"packages","node_modules","node-red");
+        }
     }
     // case 2: NR is resolvable from here
     try {
@@ -68,34 +73,31 @@ class NodeTestHelper extends EventEmitter {
     _initRuntime(requirePath) {
         try {
             const RED = this._RED = require(requirePath);
-
             // public runtime API
             this._redNodes = RED.nodes;
             this._events = RED.events;
             this._log = RED.log;
-
             // access internal Node-RED runtime methods
             const prefix = path.dirname(requirePath);
-            this._context = require(path.join(prefix, 'runtime', 'nodes', 'context'));
-            this._comms = require(path.join(prefix, 'api', 'editor', 'comms'));
 
-            this.credentials = require(path.join(prefix, 'runtime', 'nodes', 'credentials'));
-
-            // proxy the methods on Node.prototype to both be Sinon spies and asynchronously emit
-            // information about the latest call
-            const NodePrototype = require(path.join(prefix, 'runtime', 'nodes', 'Node')).prototype;
-            PROXY_METHODS.forEach(methodName => {
-                const spy = this._sandbox.spy(NodePrototype, methodName);
-                NodePrototype[methodName] = new Proxy(spy, {
-                    apply: (target, thisArg, args) => {
-                        const retval = Reflect.apply(target, thisArg, args);
-                        process.nextTick(function(call) { return () => {
-                                NodePrototype.emit.call(thisArg, `call:${methodName}`, call);
-                        }}(spy.lastCall));
-                        return retval;
-                    }
-                });
-            });
+            if (semver.ltr(RED.version(),"<0.20.0")) {
+                this._context = require(path.join(prefix, 'runtime', 'nodes', 'context'));
+                this._comms = require(path.join(prefix, 'api', 'editor', 'comms'));
+                this.credentials = require(path.join(prefix, 'runtime', 'nodes', 'credentials'));
+                // proxy the methods on Node.prototype to both be Sinon spies and asynchronously emit
+                // information about the latest call
+                this._NodePrototype = require(path.join(prefix, 'runtime', 'nodes', 'Node')).prototype;
+            } else {
+                // This is good enough for running it within the NR git repository - given the
+                // code layout changes. But it will need some more work when running in the other
+                // possible locations
+                this._context = require(path.join(prefix, '@node-red/runtime/lib/nodes/context'));
+                this._comms = require(path.join(prefix, '@node-red/editor-api/lib/editor/comms'));
+                this.credentials = require(path.join(prefix, '@node-red/runtime/lib/nodes/credentials'));
+                // proxy the methods on Node.prototype to both be Sinon spies and asynchronously emit
+                // information about the latest call
+                this._NodePrototype = require(path.join(prefix, '@node-red/runtime/lib/nodes/Node')).prototype;
+            }
         } catch (ignored) {
             // ignore, assume init will be called again by a test script supplying the runtime path
         }
@@ -118,6 +120,22 @@ class NodeTestHelper extends EventEmitter {
         logSpy.DEBUG = log.DEBUG;
         logSpy.TRACE = log.TRACE;
         logSpy.METRIC = log.METRIC;
+
+        const self = this;
+        PROXY_METHODS.forEach(methodName => {
+            const spy = this._sandbox.spy(self._NodePrototype, methodName);
+            self._NodePrototype[methodName] = new Proxy(spy, {
+                apply: (target, thisArg, args) => {
+                    const retval = Reflect.apply(target, thisArg, args);
+                    process.nextTick(function(call) { return () => {
+                            self._NodePrototype.emit.call(thisArg, `call:${methodName}`, call);
+                    }}(spy.lastCall));
+                    return retval;
+                }
+            });
+        });
+
+
 
         if (typeof testCredentials === 'function') {
             cb = testCredentials;
@@ -175,7 +193,7 @@ class NodeTestHelper extends EventEmitter {
         // TODO: any other state to remove between tests?
         this._redNodes.clearRegistry();
         this._logSpy.restore();
-        this._sandbox.reset();
+        this._sandbox.restore();
 
         // internal API
         this._context.clean({allNodes:[]});

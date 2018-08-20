@@ -15,6 +15,7 @@
   "dependencies": {
     "express": "4.16.2",
     "read-pkg-up": "3.0.0",
+    "semver": "5.5.1",
     "should": "^13.2.1",
     "should-sinon": "0.0.6",
     "sinon": "5.0.3",

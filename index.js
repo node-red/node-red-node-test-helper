@@ -37,7 +37,7 @@ function findRuntimePath() {
     const upPkg = readPkgUp.sync();
     // case 1: we're in NR itself
     if (upPkg.pkg.name === 'node-red') {
-        if (semver.ltr(upPkg.pkg.version,"<0.20.0")) {
+        if (checkSemver(upPkg.pkg.version,"<0.20.0")) {
             return path.join(path.dirname(upPkg.path), upPkg.pkg.main);
         } else {
             return path.join(path.dirname(upPkg.path),"packages","node_modules","node-red");
@@ -56,6 +56,14 @@ function findRuntimePath() {
             return path.join(dirpath, pkg.main);
         } catch (ignored) {}
     }
+}
+
+
+// As we have prerelease tags in development version, they need stripping off
+// before semver will do a sensible comparison with a range.
+function checkSemver(localVersion,testRange) {
+    var parts = localVersion.split("-");
+    return semver.satisfies(parts[0],testRange);
 }
 
 class NodeTestHelper extends EventEmitter {
@@ -79,8 +87,7 @@ class NodeTestHelper extends EventEmitter {
             this._log = RED.log;
             // access internal Node-RED runtime methods
             const prefix = path.dirname(requirePath);
-
-            if (semver.ltr(RED.version(),"<0.20.0")) {
+            if (checkSemver(RED.version(),"<0.20.0")) {
                 this._context = require(path.join(prefix, 'runtime', 'nodes', 'context'));
                 this._comms = require(path.join(prefix, 'api', 'editor', 'comms'));
                 this.credentials = require(path.join(prefix, 'runtime', 'nodes', 'credentials'));
@@ -99,6 +106,7 @@ class NodeTestHelper extends EventEmitter {
                 this._NodePrototype = require(path.join(prefix, '@node-red/runtime/lib/nodes/Node')).prototype;
             }
         } catch (ignored) {
+            console.log(ignored);
             // ignore, assume init will be called again by a test script supplying the runtime path
         }
     }

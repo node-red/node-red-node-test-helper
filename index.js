@@ -156,9 +156,18 @@ class NodeTestHelper extends EventEmitter {
             }
         };
 
-        var settings = {
-            available: function() { return false; }
-        };
+        var settings;
+        try {
+            // Try to read settings.js from the current working directory.
+            var filePath = path.join(process.cwd(), "settings.js");
+            require.resolve(filePath);
+            settings = require(filePath);
+        } catch (err) {
+            // settings.js not found, set settings to not available.
+            settings = {
+                available: function() { return false; }
+            };
+        }
 
         var red = {
             _: v => v

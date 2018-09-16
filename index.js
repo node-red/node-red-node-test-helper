@@ -58,7 +58,6 @@ function findRuntimePath() {
     }
 }
 
-
 // As we have prerelease tags in development version, they need stripping off
 // before semver will do a sensible comparison with a range.
 function checkSemver(localVersion,testRange) {
@@ -118,7 +117,30 @@ class NodeTestHelper extends EventEmitter {
         }
     }
 
-    load(testNode, testFlow, testCredentials, cb) {
+    /**
+     * Loads a flow then starts the flow.
+     * 
+     * @param {Object|Object[]} testNode - Module object of a node to be tested returned by require function. This node will be registered, and can be used in testFlows.
+     * @param {Object[]} testFlow - Flow data to test a node. If you want to use flow data exported from Node-RED editor, export the flow to the clipboard and paste the content into your test scripts.
+     * @param {Object} [testCredentials] - Optional node credentials. (Not optional when testSettings parameter is supplied, but may be undefined.)
+     * @param {Object} [testSettings] - Optional settings.
+     * @param {function} cb - Function to call back when testFlows has been started.
+     */
+    load(testNode, testFlow, testCredentials, testSettings, cb) {
+        if (arguments.length === 3) {
+            // function call was: load(testNode, testFlow, cb)
+            cb = testCredentials;
+            testSettings = { available: function() { return false; } };
+            testCredentials = {};
+        } else if (arguments.length === 4) {
+            // function call was: load(testNode, testFlow, testCredentials, cb)
+            cb = testSettings;
+            testSettings = { available: function() { return false; } };
+        } else if (testCredentials === undefined) {
+            // function call was: load(testNode, testFlow, undefined, testSettings, cb)
+            testCredentials = {};
+        }
+
         const log = this._log;
         const logSpy = this._logSpy = this._sandbox.spy(log, 'log');
         logSpy.FATAL = log.FATAL;
@@ -143,31 +165,11 @@ class NodeTestHelper extends EventEmitter {
             });
         });
 
-
-
-        if (typeof testCredentials === 'function') {
-            cb = testCredentials;
-            testCredentials = {};
-        }
-
         var storage = {
             getFlows: function () {
                 return when.resolve({flows:testFlow,credentials:testCredentials});
             }
         };
-
-        var settings;
-        try {
-            // Try to read settings.js from the current working directory.
-            var filePath = path.join(process.cwd(), "settings.js");
-            require.resolve(filePath);
-            settings = require(filePath);
-        } catch (err) {
-            // settings.js not found, set settings to not available.
-            settings = {
-                available: function() { return false; }
-            };
-        }
 
         var red = {
             _: v => v
@@ -182,7 +184,7 @@ class NodeTestHelper extends EventEmitter {
         const redNodes = this._redNodes;
         redNodes.init({
             events: this._events,
-            settings: settings,
+            settings: testSettings,
             storage: storage,
             log: this._log
         });

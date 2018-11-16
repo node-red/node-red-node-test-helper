@@ -118,7 +118,7 @@ class NodeTestHelper extends EventEmitter {
         }
     }
 
-    load(testNode, testFlow, testCredentials, cb) {
+    async load(testNode, testFlow, testCredentials, cb) {
         const log = this._log;
         const logSpy = this._logSpy = this._sandbox.spy(log, 'log');
         logSpy.FATAL = log.FATAL;
@@ -147,6 +147,10 @@ class NodeTestHelper extends EventEmitter {
 
         if (typeof testCredentials === 'function') {
             cb = testCredentials;
+            testCredentials = null;
+        }
+
+        if (testCredentials == null) {
             testCredentials = {};
         }
 
@@ -189,12 +193,12 @@ class NodeTestHelper extends EventEmitter {
             testNode(red);
         }
 
-        redNodes.loadFlows()
-            .then(() => {
-                redNodes.startFlows();
-                should.deepEqual(testFlow, redNodes.getFlows().flows);
-                cb();
-            });
+        await redNodes.loadFlows();
+        redNodes.startFlows();
+        should.deepEqual(testFlow, redNodes.getFlows().flows);
+        if (typeof cb === 'function') {
+            cb();
+        }
     }
 
     unload() {

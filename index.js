@@ -290,28 +290,38 @@ class NodeTestHelper extends EventEmitter {
             logging:{console:{level:'off'}}
         });
         server.listen(this._listenPort, this._address);
-        server.on('listening', () => {
-            this._port = server.address().port;
-            // internal API
-            this._comms.start();
-            done();
-        });
         this._server = server;
+        return new Promise(resolve => {
+            server.on('listening', () => {
+                this._port = server.address().port;
+                // internal API
+                this._comms.start();
+                done && done();
+                resolve();
+            });
+        });
     }
 
     //TODO consider saving TCP handshake/server reinit on start/stop/start sequences
     stopServer(done) {
-        if (this._server) {
-            try {
-                // internal API
-                this._comms.stop();
-                this._server.stop(done);
-            } catch (e) {
+        return new Promise(resolve => {
+            if (typeof done === 'function') {
+                done = () => {done(); resolve();}
+            } else {
+                done = resolve;
+            }
+            if (this._server) {
+                try {
+                    // internal API
+                    this._comms.stop();
+                    this._server.stop(done);
+                } catch (e) {
+                    done();
+                }
+            } else {
                 done();
             }
-        } else {
-            done();
-        }
+        });
     }
 
     url() {

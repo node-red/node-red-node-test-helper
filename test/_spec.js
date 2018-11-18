@@ -3,6 +3,7 @@ const helper = require('../index.js');
 
 afterEach(async () => {
     await helper.unload();
+    await helper.stopServer();
 });
 
 const flow = [{id: "n1", type: "helper", name: "helper"}];
@@ -47,6 +48,24 @@ describe('_spec.js', function() {
     it('should have credentials', async function() {
         await helper.load([], []);
         helper.should.have.property('credentials');
+    });
+});
+
+
+describe('start', function() {
+
+    it('should start and call callback', function(done) {
+        delete helper._server;
+        helper.startServer(function() {
+            should.exist(helper._server);
+            done();
+        });
+    });
+
+    it('should start and resolve promise', async function() {
+        delete helper._server;
+        await helper.startServer();
+        should.exist(helper._server);
     });
 });
 

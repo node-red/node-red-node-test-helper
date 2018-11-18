@@ -204,7 +204,7 @@ class NodeTestHelper extends EventEmitter {
     unload() {
         // TODO: any other state to remove between tests?
         this._redNodes.clearRegistry();
-        this._logSpy.restore();
+        this._logSpy && this._logSpy.restore();
         this._sandbox.restore();
 
         // internal API

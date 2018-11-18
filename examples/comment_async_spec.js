@@ -22,17 +22,15 @@ var commentNode = require("./nodes/90-comment.js");
 
 describe('comment Node', function() {
 
-    afterEach(function() {
-        helper.unload();
+    afterEach(async function() {
+        await helper.unload();
     });
 
-    it('should be loaded', function(done) {
+    it('should be loaded', async function() {
         var flow = [{id:"n1", type:"comment", name: "comment" }];
-        helper.load(commentNode, flow, function() {
-            var n1 = helper.getNode("n1");
-            n1.should.have.property('name', 'comment');
-            done();
-        });
+        await helper.load(commentNode, flow);
+        var n1 = helper.getNode("n1");
+        n1.should.have.property('name', 'comment');
     });
 
 });

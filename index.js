@@ -218,8 +218,58 @@ class NodeTestHelper extends EventEmitter {
      * @returns {Node}
      */
     getNode(id) {
-        return this._redNodes.getNode(id);
+        const node = this._redNodes.getNode(id);
+        this.decorateNode(node);
+        return node;
     }
+
+    decorateNode(node) {
+        if (node == null || node.testhelper) {return;}
+
+        node.testhelper = {};
+
+        this.decorateNodeEvent(node, 'input');
+
+        PROXY_METHODS.forEach(methodName => {
+            this.decorateNodeEvent(node, `call:${methodName}`);
+        });
+
+        const cloneMessage = this._RED.util.cloneMessage;
+
+        node.next = async function(event) {
+            if (node.testhelper[event].args.length > 0) {
+                return node.testhelper[event].args.shift();
+            }
+            return new Promise((resolve, reject) => {
+                node.testhelper[event].resolvers.push(resolve);
+            });
+        }
+    }
+
+    decorateNodeEvent(node, eventName) {
+        node.testhelper[eventName] = {
+            args: [],
+            resolvers: []
+        };
+
+        node.on(eventName, arg => {
+            if (eventName === "input") {
+                arg = this._RED.util.cloneMessage(arg);
+            }
+            try {
+                if (node.testhelper[eventName].resolvers.length > 0) {
+                    const resolver = node.testhelper[eventName].resolvers.shift();
+                    resolver(arg);
+                } else {
+                    node.testhelper[eventName].args.push(arg);
+                }
+            } catch (e) {
+                console.log(e);
+            }
+        });
+
+    }
+
 
     clearFlows() {
         return this._redNodes.stopFlows();

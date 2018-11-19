@@ -147,6 +147,10 @@ class NodeTestHelper extends EventEmitter {
 
         if (typeof testCredentials === 'function') {
             cb = testCredentials;
+            testCredentials = null;
+        }
+
+        if (testCredentials == null) {
             testCredentials = {};
         }
 
@@ -189,18 +193,20 @@ class NodeTestHelper extends EventEmitter {
             testNode(red);
         }
 
-        redNodes.loadFlows()
+        return redNodes.loadFlows()
             .then(() => {
                 redNodes.startFlows();
                 should.deepEqual(testFlow, redNodes.getFlows().flows);
-                cb();
+                if (typeof cb === 'function') {
+                    cb();
+                }
             });
     }
 
     unload() {
         // TODO: any other state to remove between tests?
         this._redNodes.clearRegistry();
-        this._logSpy.restore();
+        this._logSpy && this._logSpy.restore();
         this._sandbox.restore();
 
         // internal API
@@ -214,8 +220,58 @@ class NodeTestHelper extends EventEmitter {
      * @returns {Node}
      */
     getNode(id) {
-        return this._redNodes.getNode(id);
+        const node = this._redNodes.getNode(id);
+        this.decorateNode(node);
+        return node;
     }
+
+    decorateNode(node) {
+        if (node == null || node.testhelper) {return;}
+
+        node.testhelper = {};
+
+        this.decorateNodeEvent(node, 'input');
+
+        PROXY_METHODS.forEach(methodName => {
+            this.decorateNodeEvent(node, `call:${methodName}`);
+        });
+
+        const cloneMessage = this._RED.util.cloneMessage;
+
+        node.next = function(event) {
+            if (node.testhelper[event].args.length > 0) {
+                return node.testhelper[event].args.shift();
+            }
+            return new Promise((resolve, reject) => {
+                node.testhelper[event].resolvers.push(resolve);
+            });
+        }
+    }
+
+    decorateNodeEvent(node, eventName) {
+        node.testhelper[eventName] = {
+            args: [],
+            resolvers: []
+        };
+
+        node.on(eventName, arg => {
+            if (eventName === "input") {
+                arg = this._RED.util.cloneMessage(arg);
+            }
+            try {
+                if (node.testhelper[eventName].resolvers.length > 0) {
+                    const resolver = node.testhelper[eventName].resolvers.shift();
+                    resolver(arg);
+                } else {
+                    node.testhelper[eventName].args.push(arg);
+                }
+            } catch (e) {
+                console.log(e);
+            }
+        });
+
+    }
+
 
     clearFlows() {
         return this._redNodes.stopFlows();
@@ -236,28 +292,38 @@ class NodeTestHelper extends EventEmitter {
             logging:{console:{level:'off'}}
         });
         server.listen(this._listenPort, this._address);
-        server.on('listening', () => {
-            this._port = server.address().port;
-            // internal API
-            this._comms.start();
-            done();
-        });
         this._server = server;
+        return new Promise(resolve => {
+            server.on('listening', () => {
+                this._port = server.address().port;
+                // internal API
+                this._comms.start();
+                done && done();
+                resolve();
+            });
+        });
     }
 
     //TODO consider saving TCP handshake/server reinit on start/stop/start sequences
     stopServer(done) {
-        if (this._server) {
-            try {
-                // internal API
-                this._comms.stop();
-                this._server.stop(done);
-            } catch (e) {
+        return new Promise(resolve => {
+            if (typeof done === 'function') {
+                done = () => {done(); resolve();}
+            } else {
+                done = resolve;
+            }
+            if (this._server) {
+                try {
+                    // internal API
+                    this._comms.stop();
+                    this._server.stop(done);
+                } catch (e) {
+                    done();
+                }
+            } else {
                 done();
             }
-        } else {
-            done();
-        }
+        });
     }
 
     url() {

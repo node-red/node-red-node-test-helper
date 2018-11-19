@@ -157,6 +157,7 @@ it('should warn if the `somethingGood` prop is falsy', function (done) {
     /* ..etc.. */
   };
   helper.load(FooNode, flow, function () {
+    var n1 = helper.getNode("n1");
     n1.warn.should.be.calledWithExactly('badness');
     done();
   });
@@ -289,14 +290,14 @@ For additional test examples taken from the Node-RED core, see the `.js` files s
 
 > *Work in progress.*
 
-### load(testNode, testFlows, testCredentials, cb)
+### load(testNode, testFlows[, testCredentials][, cb])
 
-Loads a flow then starts the flow. This function has the following arguments:
+Return a promise to load a flow then start the flow. This function has the following arguments:
 
 * testNode: (object|array of objects) Module object of a node to be tested returned by require function. This node will be registered, and can be used in testFlows.
 * testFlow: (array of objects) Flow data to test a node. If you want to use flow data exported from Node-RED editor, export the flow to the clipboard and paste the content into your test scripts.
 * testCredentials: (object) Optional node credentials.
-* cb: (function) Function to call back when testFlows has been started.
+* cb: (function) Optional function to call back when testFlows has been started.
 
 ### unload()
 
@@ -306,9 +307,34 @@ Return promise to stop all flows, clean up test runtime.
 
 Returns a node instance by id in the testFlow. Any node that is defined in testFlows can be retrieved, including any helper node added to the flow.
 
+An extra method is added to the node:
+
+* next(event)  
+  Alternative to on(event, callback) for async/await style programming. Returns promise to find the next event in queue. If there is no events in queue, the promise itself will be queued.
+
+  If the event is input, a clone of the message will be returned.
+
+  Example:
+  
+  ````javascript
+  it('should make payload lower case', async function() {
+      var flow = [
+          {id:"n1",type:"lower-case",name:"test name",wires:[["n2"]]},
+          {id:"n2",type:"helper"}
+      ];
+      await helper.load(lowerNode, flow);
+      var n2 = helper.getNode("n2");
+      var n1 = helper.getNode("n1");
+
+      n1.receive({payload:"UpperCase"});
+      let msg = await n2.next("input");
+      msg.should.have.property('payload', 'uppercase');
+    });
+    ````
+
 ### clearFlows()
 
-Stop all flows.
+Return promise to stop all flows.
 
 ### request()
 
@@ -320,9 +346,9 @@ Example:
 helper.request().post('/inject/invalid').expect(404).end(done);
 ```
 
-### startServer(done)
+### startServer([done])
 
-Starts a Node-RED server for testing nodes that depend on http or web sockets endpoints like the debug node.
+Return promise to start a Node-RED server for testing nodes that depend on http or web sockets endpoints like the debug node.
 To start a Node-RED server before all test cases:
 
 ```javascript
@@ -331,9 +357,9 @@ before(function(done) {
 });
 ```
 
-### stopServer(done)
+### stopServer([done])
 
-Stop server.  Generally called after unload() complete.  For example, to unload a flow then stop a server after each test:
+Return promise to stop server.  Generally called after unload() complete.  For example, to unload a flow then stop a server after each test:
 
 ```javascript
 afterEach(function(done) {

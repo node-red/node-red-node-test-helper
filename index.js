@@ -82,12 +82,13 @@ class NodeTestHelper extends EventEmitter {
         try {
             const RED = this._RED = require(requirePath);
             // public runtime API
-            this._redNodes = RED.nodes;
-            this._events = RED.events;
             this._log = RED.log;
             // access internal Node-RED runtime methods
             const prefix = path.dirname(requirePath);
             if (checkSemver(RED.version(),"<0.20.0")) {
+                this._settings = RED.settings;
+                this._events = RED.events;
+                this._redNodes = RED.nodes;
                 this._context = require(path.join(prefix, 'runtime', 'nodes', 'context'));
                 this._comms = require(path.join(prefix, 'api', 'editor', 'comms'));
                 this.credentials = require(path.join(prefix, 'runtime', 'nodes', 'credentials'));
@@ -98,8 +99,12 @@ class NodeTestHelper extends EventEmitter {
                 // This is good enough for running it within the NR git repository - given the
                 // code layout changes. But it will need some more work when running in the other
                 // possible locations
+                this._redNodes = require(path.join(prefix, '@node-red/runtime/lib/nodes'));
+                this._settings = RED.settings;
+                this._events = RED.runtime.events;
                 this._context = require(path.join(prefix, '@node-red/runtime/lib/nodes/context'));
                 this._comms = require(path.join(prefix, '@node-red/editor-api/lib/editor/comms'));
+                this._registryUtil = require(path.join(prefix, '@node-red/registry/lib/util'));
                 this.credentials = require(path.join(prefix, '@node-red/runtime/lib/nodes/credentials'));
                 // proxy the methods on Node.prototype to both be Sinon spies and asynchronously emit
                 // information about the latest call
@@ -155,31 +160,45 @@ class NodeTestHelper extends EventEmitter {
                 return when.resolve({flows:testFlow,credentials:testCredentials});
             }
         };
-
-        var settings = {
-            available: function() { return false; }
-        };
-
-        var red = {
-            _: v => v
-        };
-
-        Object.keys(this._RED).filter(prop => !/^(init|start|stop)$/.test(prop))
-            .forEach(prop => {
-                const propDescriptor = Object.getOwnPropertyDescriptor(this._RED, prop);
-                Object.defineProperty(red, prop, propDescriptor);
-            });
+        // this._settings.logging = {console:{level:'off'}};
+        this._settings.available = function() { return false; }
 
         const redNodes = this._redNodes;
-        redNodes.init({
+        this._httpAdmin = express();
+        const mockRuntime = {
+            nodes: redNodes,
             events: this._events,
-            settings: settings,
+            util: this._RED.util,
+            settings: this._settings,
             storage: storage,
-            log: this._log
-        });
+            log: this._log,
+            nodeApp: express(),
+            adminApp: this._httpAdmin,
+            library: {register: function() {}},
+            get server() { return self._server }
+        }
+
+        redNodes.init(mockRuntime);
         redNodes.registerType("helper", function (n) {
             redNodes.createNode(this, n);
         });
+
+        var red;
+        if (this._registryUtil) {
+            this._registryUtil.init(mockRuntime);
+            red = this._registryUtil.createNodeApi({});
+            red._ = v=>v;
+            red.settings = this._settings;
+        } else {
+            red = {
+                _: v => v
+            };
+            Object.keys(this._RED).filter(prop => !/^(init|start|stop)$/.test(prop))
+                .forEach(prop => {
+                    const propDescriptor = Object.getOwnPropertyDescriptor(this._RED, prop);
+                    Object.defineProperty(red, prop, propDescriptor);
+                });
+        }
 
         if (Array.isArray(testNode)) {
             testNode.forEach(fn => {
@@ -188,7 +207,6 @@ class NodeTestHelper extends EventEmitter {
         } else {
             testNode(red);
         }
-
         redNodes.loadFlows()
             .then(() => {
                 redNodes.startFlows();
@@ -222,7 +240,7 @@ class NodeTestHelper extends EventEmitter {
     }
 
     request() {
-        return request(this._RED.httpAdmin);
+        return request(this._httpAdmin);
     }
 
     startServer(done) {
@@ -231,8 +249,7 @@ class NodeTestHelper extends EventEmitter {
             this._app(req, res);
         }), 0);
 
-        this._RED.init(server, {
-            SKIP_BUILD_CHECK: true,
+        this._RED.init(server,{
             logging:{console:{level:'off'}}
         });
         server.listen(this._listenPort, this._address);

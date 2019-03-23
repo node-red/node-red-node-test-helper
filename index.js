@@ -18,8 +18,8 @@
 const path = require("path");
 const sinon = require("sinon");
 const should = require('should');
+const fs = require('fs');
 require('should-sinon');
-const when = require("when");
 const request = require('supertest');
 const express = require("express");
 const http = require('http');
@@ -84,7 +84,7 @@ class NodeTestHelper extends EventEmitter {
             // public runtime API
             this._log = RED.log;
             // access internal Node-RED runtime methods
-            const prefix = path.dirname(requirePath);
+            let prefix = path.dirname(requirePath);
             if (checkSemver(RED.version(),"<0.20.0")) {
                 this._settings = RED.settings;
                 this._events = RED.events;
@@ -96,12 +96,16 @@ class NodeTestHelper extends EventEmitter {
                 // information about the latest call
                 this._NodePrototype = require(path.join(prefix, 'runtime', 'nodes', 'Node')).prototype;
             } else {
-                // This is good enough for running it within the NR git repository - given the
-                // code layout changes. But it will need some more work when running in the other
-                // possible locations
+                if (!fs.existsSync(path.join(prefix, '@node-red/runtime/lib/nodes'))) {
+                    // Not in the NR source tree, need to go hunting for the modules....
+                    if (/node_modules\/node-red\/lib$/.test(prefix)) {
+                        prefix = path.resolve(path.join(prefix,"..",".."));
+                    } else {
+                        throw new Error("Cannot find the NR source tree. Please raise an issue against node-red/node-red-node-test-helper with full details.");
+                    }
+                }
+
                 this._redNodes = require(path.join(prefix, '@node-red/runtime/lib/nodes'));
-                this._settings = RED.settings;
-                this._events = RED.runtime.events;
                 this._context = require(path.join(prefix, '@node-red/runtime/lib/nodes/context'));
                 this._comms = require(path.join(prefix, '@node-red/editor-api/lib/editor/comms'));
                 this._registryUtil = require(path.join(prefix, '@node-red/registry/lib/util'));
@@ -109,6 +113,8 @@ class NodeTestHelper extends EventEmitter {
                 // proxy the methods on Node.prototype to both be Sinon spies and asynchronously emit
                 // information about the latest call
                 this._NodePrototype = require(path.join(prefix, '@node-red/runtime/lib/nodes/Node')).prototype;
+                this._settings = RED.settings;
+                this._events = RED.runtime.events;
             }
         } catch (ignored) {
             console.log(ignored);
@@ -157,7 +163,7 @@ class NodeTestHelper extends EventEmitter {
 
         var storage = {
             getFlows: function () {
-                return when.resolve({flows:testFlow,credentials:testCredentials});
+                return Promise.resolve({flows:testFlow,credentials:testCredentials});
             }
         };
         // this._settings.logging = {console:{level:'off'}};

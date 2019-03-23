@@ -1,6 +1,6 @@
 {
   "name": "node-red-node-test-helper",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A test framework for Node-RED nodes",
   "main": "index.js",
   "scripts": {
@@ -20,8 +20,7 @@
     "should-sinon": "0.0.6",
     "sinon": "5.0.3",
     "stoppable": "1.1.0",
-    "supertest": "3.0.0",
-    "when": "3.7.8"
+    "supertest": "3.0.0"
   },
   "peerDependencies": {
     "node-red": "~0.20.0"

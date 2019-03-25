@@ -98,10 +98,16 @@ class NodeTestHelper extends EventEmitter {
             } else {
                 if (!fs.existsSync(path.join(prefix, '@node-red/runtime/lib/nodes'))) {
                     // Not in the NR source tree, need to go hunting for the modules....
-                    if (/node_modules\/node-red\/lib$/.test(prefix)) {
+                    if (fs.existsSync(path.join(prefix,'..','node_modules','@node-red/runtime/lib/nodes'))) {
+                        // path/to/node_modules/node-red/lib
+                        // path/to/node_modules/node-red/node_modules/@node-red
+                        prefix = path.resolve(path.join(prefix,"..","node_modules"));
+                    } else if (fs.existsSync(path.join(prefix,'..','..','@node-red/runtime/lib/nodes'))) {
+                        // path/to/node_modules/node-red/lib
+                        // path/to/node_modules/@node-red
                         prefix = path.resolve(path.join(prefix,"..",".."));
                     } else {
-                        throw new Error("Cannot find the NR source tree. Please raise an issue against node-red/node-red-node-test-helper with full details.");
+                        throw new Error("Cannot find the NR source tree. Path: '"+prefix+"'. Please raise an issue against node-red/node-red-node-test-helper with full details.");
                     }
                 }
 

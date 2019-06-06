@@ -104,6 +104,14 @@ We then have a set of mocha unit tests.  These tests check that the node loads c
 
 To get started, we need to tell the helper where to find the node-red runtime.  this is done by calling `helper.init(require.resolve('node-red'))` as shown.
 
+The helper takes an optional `userSettings` parameter which is merged with the runtime defaults.
+
+```javascript
+helper.init(require.resolve('node-red'), { 
+    functionGlobalContext: { os:require('os') }
+});
+```
+
 ## Getting nodes in the runtime
 
 The asynchronous `helper.load()` method calls the supplied callback function once the Node-RED server and runtime is ready.  We can then call the `helper.getNode(id)` method to get a reference to nodes in the runtime.  For more information on these methods see the API section below.
@@ -318,6 +326,20 @@ Example:
 
 ```javascript
 helper.request().post('/inject/invalid').expect(404).end(done);
+```
+
+### settings(userSettings)
+
+Merges any userSettings with the defaults returned by `RED.settings`. Each invocation of this method will overwrite the previous userSettings to prevent unexpected problems in your tests.
+
+This will enable you to replicate your production environment within your tests, for example where you're using the `functionGlobalContext` to enable extra node modules within your functions.
+
+```javascript
+// functions can now access os via global.get('os')
+helper.settings({ functionGlobalContext: { os:require('os') } });
+
+// reset back to defaults
+helper.settings({ });
 ```
 
 ### startServer(done)

@@ -197,6 +197,28 @@ describe('function node', function() {
         });
     });
 
+    it('should access functionGlobalContext set via herlp settings()', function(done) {
+        var flow = [{id:"n1",type:"function",wires:[["n2"]],func:"msg.payload=global.get('foo');return msg;"},
+                    {id:"n2", type:"helper"}];
+        helper.settings({
+            functionGlobalContext: {
+                foo: (function() {
+                    return 'bar';
+                })(),
+            },
+        });
+        helper.load(functionNode, flow, function() {
+            var n1 = helper.getNode("n1");
+            var n2 = helper.getNode("n2");
+            n2.on("input", function(msg) {
+                msg.should.have.property('payload', 'bar');
+                done();
+            });
+            n1.receive({payload:"replaceme"});
+        });
+        helper.settings({});
+    });
+
     function testNonObjectMessage(functionText,done) {
         var flow = [{id:"n1",type:"function",wires:[["n2"]],func:functionText},
                 {id:"n2", type:"helper"}];

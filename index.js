@@ -128,11 +128,35 @@ class NodeTestHelper extends EventEmitter {
         }
     }
 
-    init(runtimePath) {
+    init(runtimePath, userSettings) {
         runtimePath = runtimePath || findRuntimePath();
         if (runtimePath) {
             this._initRuntime(runtimePath);
+            if (userSettings) {
+                this.settings(userSettings);
+            }
         }
+    }
+
+    /**
+     * Merges any userSettings with the defaults returned by `RED.settings`. Each
+     * invocation of this method will overwrite the previous userSettings to prevent
+     * unexpected problems in your tests.
+     *
+     * This will enable you to replicate your production environment within your tests,
+     * for example where you're using the `functionGlobalContext` to enable extra node
+     * modules within your functions.
+     * @example
+     * helper.settings({ functionGlobalContext: { os:require('os') } });
+     * @param {Object} userSettings - an object containing the runtime settings
+     * @return {Object} custom userSettings merged with default RED.settings
+     */
+    settings(userSettings) {
+        if (userSettings) {
+            // to prevent unexpected problems, always merge with the default RED.settings
+            this._settings = Object.assign({}, this._RED.settings, userSettings);
+        }
+        return this._settings;
     }
 
     load(testNode, testFlow, testCredentials, cb) {

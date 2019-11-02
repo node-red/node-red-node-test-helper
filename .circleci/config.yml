@@ -26,7 +26,11 @@ jobs:
             # fallback to using the latest cache if no exact match is found
             - v1-dependencies-
 
+      # Install latest deps and the version of node-red that is support by the
+      # node-red-node-test-help frameworker. We do this here rather than in the
+      # package.json.
       - run: yarn install
+      - run: yarn add node-red@0.20.0
 
       - save_cache:
           paths:

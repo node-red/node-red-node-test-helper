@@ -243,11 +243,11 @@ class NodeTestHelper extends EventEmitter {
         } else {
             testNode(red);
         }
-        redNodes.loadFlows()
+        return redNodes.loadFlows()
             .then(() => {
                 redNodes.startFlows();
                 should.deepEqual(testFlow, redNodes.getFlows().flows);
-                cb();
+                if(cb) cb();
             });
     }
 

@@ -36,9 +36,9 @@ const PROXY_METHODS = ['log', 'status', 'warn', 'error', 'debug', 'trace', 'send
 function findRuntimePath() {
     const upPkg = readPkgUp.sync();
     // case 1: we're in NR itself
-    if (upPkg.pkg.name === 'node-red') {
-        if (checkSemver(upPkg.pkg.version,"<0.20.0")) {
-            return path.join(path.dirname(upPkg.path), upPkg.pkg.main);
+    if (upPkg.packageJson.name === 'node-red') {
+        if (checkSemver(upPkg.packageJson.version,"<0.20.0")) {
+            return path.join(path.dirname(upPkg.path), upPkg.packageJson.main);
         } else {
             return path.join(path.dirname(upPkg.path),"packages","node_modules","node-red");
         }
@@ -48,8 +48,8 @@ function findRuntimePath() {
         return require.resolve('node-red');
     } catch (ignored) {}
     // case 3: NR is installed alongside node-red-node-test-helper
-    if ((upPkg.pkg.dependencies && upPkg.pkg.dependencies['node-red']) ||
-        (upPkg.pkg.devDependencies && upPkg.pkg.devDependencies['node-red'])) {
+    if ((upPkg.packageJson.dependencies && upPkg.packageJson.dependencies['node-red']) ||
+        (upPkg.packageJson.devDependencies && upPkg.packageJson.devDependencies['node-red'])) {
         const dirpath = path.join(path.dirname(upPkg.path), 'node_modules', 'node-red');
         try {
             const pkg = require(path.join(dirpath, 'package.json'));

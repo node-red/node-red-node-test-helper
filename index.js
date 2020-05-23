@@ -201,6 +201,7 @@ class NodeTestHelper extends EventEmitter {
 
         const redNodes = this._redNodes;
         this._httpAdmin = express();
+        this._httpNode = express();
         const mockRuntime = {
             nodes: redNodes,
             events: this._events,
@@ -208,7 +209,7 @@ class NodeTestHelper extends EventEmitter {
             settings: this._settings,
             storage: storage,
             log: this._log,
-            nodeApp: express(),
+            nodeApp: this._httpNode,
             adminApp: this._httpAdmin,
             library: {register: function() {}},
             get server() { return self._server }
@@ -275,8 +276,12 @@ class NodeTestHelper extends EventEmitter {
         return this._redNodes.stopFlows();
     }
 
-    request() {
-        return request(this._httpAdmin);
+    request(app) {
+        if(app === "httpNode"){
+            return request(this._httpNode);
+        }else{
+            return request(this._httpAdmin);
+        }
     }
 
     startServer(done) {

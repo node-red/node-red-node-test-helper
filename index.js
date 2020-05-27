@@ -21,6 +21,7 @@ const should = require('should');
 const fs = require('fs');
 require('should-sinon');
 const request = require('supertest');
+var bodyParser = require("body-parser");
 const express = require("express");
 const http = require('http');
 const stoppable = require('stoppable');
@@ -201,6 +202,9 @@ class NodeTestHelper extends EventEmitter {
 
         const redNodes = this._redNodes;
         this._httpAdmin = express();
+        this._httpAdmin.use(bodyParser.json({limit:'5mb'}));
+        this._httpAdmin.use(bodyParser.urlencoded({limit:'5mb',extended:true}));
+
         const mockRuntime = {
             nodes: redNodes,
             events: this._events,

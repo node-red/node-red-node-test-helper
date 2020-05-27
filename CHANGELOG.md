@@ -1,3 +1,7 @@
+#### 0.2.5
+
+ - Add proper middleware on httpAdmin express app
+
 #### 0.2.4
 
  - Update dependencies

@@ -13,8 +13,12 @@ describe('lower-case Node', function () {
     var flow = [{ id: "n1", type: "lower-case", name: "lower-case" }];
     helper.load(lowerNode, flow, function () {
       var n1 = helper.getNode("n1");
-      n1.should.have.property('name', 'lower-case');
-      done();
+      try {
+        n1.should.have.property('name', 'lower-case');
+        done();
+      } catch(err) {
+        done(err);
+      }
     });
   });
 
@@ -22,8 +26,12 @@ describe('lower-case Node', function () {
     var flow = [{"id":"3912a37a.c3818c","type":"lower-case","z":"e316ac4b.c85a2","name":"lower-case","x":240,"y":320,"wires":[[]]}];
     helper.load(lowerNode, flow, function () {
       var n1 = helper.getNode("3912a37a.c3818c");
-      n1.should.have.property('name', 'lower-case');
-      done();
+      try {
+        n1.should.have.property('name', 'lower-case');
+        done();
+      } catch(err) {
+        done(err);
+      }
     });
   });
 
@@ -36,8 +44,12 @@ describe('lower-case Node', function () {
       var n2 = helper.getNode("n2");
       var n1 = helper.getNode("n1");
       n2.on("input", function (msg) {
-        msg.should.have.property('payload', 'uppercase');
-        done();
+        try {
+          msg.should.have.property('payload', 'uppercase');
+          done();
+        } catch(err) {
+          done(err);
+        }
       });
       n1.receive({ payload: "UpperCase" });
     });

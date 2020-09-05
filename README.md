@@ -112,7 +112,7 @@ Note how the assertion failures are caught explicitly and passed to the `done()`
 
 ## Initializing Helper
 
-To get started, we need to tell the helper where to find the node-red runtime.  this is done by calling `helper.init(require.resolve('node-red'))` as shown.
+To get started, we need to tell the helper where to find the node-red runtime.  This is done by calling `helper.init(require.resolve('node-red'))` as shown.
 
 The helper takes an optional `userSettings` parameter which is merged with the runtime defaults.
 

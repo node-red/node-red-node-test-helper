@@ -1,6 +1,6 @@
 {
   "name": "node-red-node-test-helper",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "A test framework for Node-RED nodes",
   "main": "index.js",
   "scripts": {
@@ -16,10 +16,10 @@
     "express": "4.17.1",
     "body-parser": "1.19.0",
     "read-pkg-up": "7.0.1",
-    "semver": "7.3.2",
+    "semver": "7.3.4",
     "should": "^13.2.3",
     "should-sinon": "0.0.6",
-    "sinon": "9.0.2",
+    "sinon": "9.2.4",
     "stoppable": "1.1.0",
     "supertest": "4.0.2"
   },

@@ -57,6 +57,11 @@ function findRuntimePath() {
             return path.join(dirpath, pkg.main);
         } catch (ignored) {}
     }
+    // case 4: NR & NRNTH are git repos sat alongside each other
+    try {
+        const nrpkg = require("../node-red/package.json");
+        return "../node-red/packages/node_modules/node-red"
+    } catch(ignored) {}
 }
 
 
@@ -122,6 +127,14 @@ class NodeTestHelper extends EventEmitter {
                 this._NodePrototype = require(path.join(prefix, '@node-red/runtime/lib/nodes/Node')).prototype;
                 this._settings = RED.settings;
                 this._events = RED.runtime.events;
+
+                this._nodeModules = {
+                    'catch': require(path.join(prefix, '@node-red/nodes/core/common/25-catch.js')),
+                    'status': require(path.join(prefix, '@node-red/nodes/core/common/25-status.js')),
+                    'complete': require(path.join(prefix, '@node-red/nodes/core/common/24-complete.js'))
+                }
+
+
             }
         } catch (ignored) {
             console.log(ignored);
@@ -240,13 +253,24 @@ class NodeTestHelper extends EventEmitter {
                 });
         }
 
-        if (Array.isArray(testNode)) {
-            testNode.forEach(fn => {
-                fn(red);
-            });
-        } else {
-            testNode(red);
+        let preloadedCoreModules = new Set();
+        testFlow.forEach(n => {
+            if (this._nodeModules.hasOwnProperty(n.type)) {
+                // Go find the 'real' core node module and load it...
+                this._nodeModules[n.type](red);
+                preloadedCoreModules.add(this._nodeModules[n.type]);
+            }
+        })
+
+        if (!Array.isArray(testNode)) {
+            testNode = [testNode];
         }
+        testNode.forEach(fn => {
+            if (!preloadedCoreModules.has(fn)) {
+                fn(red);
+            }
+        });
+
         return redNodes.loadFlows()
             .then(() => {
                 redNodes.startFlows();

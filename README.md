@@ -208,7 +208,7 @@ describe('if `omg` in input message', function () {
       const n1 = helper.getNode('n1')
       n1.receive({omg: true});
       n1.on('input', () => {
-        n1.warn.should.be.calledWithExactly('lolwtf');
+        n1.error.should.be.calledWithExactly('lolwtf');
         done();
       });
     });

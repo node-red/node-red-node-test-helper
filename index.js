@@ -38,16 +38,16 @@ function findRuntimePath() {
     const upPkg = readPkgUp.sync();
     // case 1: we're in NR itself
     if (upPkg.packageJson.name === 'node-red') {
-        if (checkSemver(upPkg.packageJson.version,"<0.20.0")) {
+        if (checkSemver(upPkg.packageJson.version, "<0.20.0")) {
             return path.join(path.dirname(upPkg.path), upPkg.packageJson.main);
         } else {
-            return path.join(path.dirname(upPkg.path),"packages","node_modules","node-red");
+            return path.join(path.dirname(upPkg.path), "packages", "node_modules", "node-red");
         }
     }
     // case 2: NR is resolvable from here
     try {
         return require.resolve('node-red');
-    } catch (ignored) {}
+    } catch (ignored) { }
     // case 3: NR is installed alongside node-red-node-test-helper
     if ((upPkg.packageJson.dependencies && upPkg.packageJson.dependencies['node-red']) ||
         (upPkg.packageJson.devDependencies && upPkg.packageJson.devDependencies['node-red'])) {
@@ -55,21 +55,21 @@ function findRuntimePath() {
         try {
             const pkg = require(path.join(dirpath, 'package.json'));
             return path.join(dirpath, pkg.main);
-        } catch (ignored) {}
+        } catch (ignored) { }
     }
     // case 4: NR & NRNTH are git repos sat alongside each other
     try {
         const nrpkg = require("../node-red/package.json");
         return "../node-red/packages/node_modules/node-red"
-    } catch(ignored) {}
+    } catch (ignored) { }
 }
 
 
 // As we have prerelease tags in development version, they need stripping off
 // before semver will do a sensible comparison with a range.
-function checkSemver(localVersion,testRange) {
+function checkSemver(localVersion, testRange) {
     var parts = localVersion.split("-");
-    return semver.satisfies(parts[0],testRange);
+    return semver.satisfies(parts[0], testRange);
 }
 
 class NodeTestHelper extends EventEmitter {
@@ -81,6 +81,9 @@ class NodeTestHelper extends EventEmitter {
         this._address = '127.0.0.1';
         this._listenPort = 0; // ephemeral
 
+        this._cache;
+        this._nodeListeners = [];
+
         this.init();
     }
 
@@ -91,7 +94,7 @@ class NodeTestHelper extends EventEmitter {
             this._log = RED.log;
             // access internal Node-RED runtime methods
             let prefix = path.dirname(requirePath);
-            if (checkSemver(RED.version(),"<0.20.0")) {
+            if (checkSemver(RED.version(), "<0.20.0")) {
                 this._settings = RED.settings;
                 this._events = RED.events;
                 this._redNodes = RED.nodes;
@@ -104,16 +107,16 @@ class NodeTestHelper extends EventEmitter {
             } else {
                 if (!fs.existsSync(path.join(prefix, '@node-red/runtime/lib/nodes'))) {
                     // Not in the NR source tree, need to go hunting for the modules....
-                    if (fs.existsSync(path.join(prefix,'..','node_modules','@node-red/runtime/lib/nodes'))) {
+                    if (fs.existsSync(path.join(prefix, '..', 'node_modules', '@node-red/runtime/lib/nodes'))) {
                         // path/to/node_modules/node-red/lib
                         // path/to/node_modules/node-red/node_modules/@node-red
-                        prefix = path.resolve(path.join(prefix,"..","node_modules"));
-                    } else if (fs.existsSync(path.join(prefix,'..','..','@node-red/runtime/lib/nodes'))) {
+                        prefix = path.resolve(path.join(prefix, "..", "node_modules"));
+                    } else if (fs.existsSync(path.join(prefix, '..', '..', '@node-red/runtime/lib/nodes'))) {
                         // path/to/node_modules/node-red/lib
                         // path/to/node_modules/@node-red
-                        prefix = path.resolve(path.join(prefix,"..",".."));
+                        prefix = path.resolve(path.join(prefix, "..", ".."));
                     } else {
-                        throw new Error("Cannot find the NR source tree. Path: '"+prefix+"'. Please raise an issue against node-red/node-red-node-test-helper with full details.");
+                        throw new Error("Cannot find the NR source tree. Path: '" + prefix + "'. Please raise an issue against node-red/node-red-node-test-helper with full details.");
                     }
                 }
 
@@ -128,11 +131,11 @@ class NodeTestHelper extends EventEmitter {
                 this._settings = RED.settings;
                 this._events = RED.runtime.events;
 
-                this._nodeModules = {
-                    'catch': require(path.join(prefix, '@node-red/nodes/core/common/25-catch.js')),
-                    'status': require(path.join(prefix, '@node-red/nodes/core/common/25-status.js')),
-                    'complete': require(path.join(prefix, '@node-red/nodes/core/common/24-complete.js'))
-                }
+                this._nodeModules = [
+                    require(path.join(prefix, '@node-red/nodes/core/common/25-catch.js')),
+                    require(path.join(prefix, '@node-red/nodes/core/common/25-status.js')),
+                    require(path.join(prefix, '@node-red/nodes/core/common/24-complete.js'))
+                ];
 
 
             }
@@ -174,118 +177,122 @@ class NodeTestHelper extends EventEmitter {
     }
 
     load(testNode, testFlow, testCredentials, cb) {
-        const log = this._log;
-        const logSpy = this._logSpy = this._sandbox.spy(log, 'log');
-        logSpy.FATAL = log.FATAL;
-        logSpy.ERROR = log.ERROR;
-        logSpy.WARN = log.WARN;
-        logSpy.INFO = log.INFO;
-        logSpy.DEBUG = log.DEBUG;
-        logSpy.TRACE = log.TRACE;
-        logSpy.METRIC = log.METRIC;
+        const initLoad = () => {
+            const log = this._log;
+            const logSpy = this._logSpy = this._sandbox.spy(log, 'log');
+            logSpy.FATAL = log.FATAL;
+            logSpy.ERROR = log.ERROR;
+            logSpy.WARN = log.WARN;
+            logSpy.INFO = log.INFO;
+            logSpy.DEBUG = log.DEBUG;
+            logSpy.TRACE = log.TRACE;
+            logSpy.METRIC = log.METRIC;
 
-        const self = this;
-        PROXY_METHODS.forEach(methodName => {
-            const spy = this._sandbox.spy(self._NodePrototype, methodName);
-            self._NodePrototype[methodName] = new Proxy(spy, {
-                apply: (target, thisArg, args) => {
-                    const retval = Reflect.apply(target, thisArg, args);
-                    process.nextTick(function(call) { return () => {
-                            self._NodePrototype.emit.call(thisArg, `call:${methodName}`, call);
-                    }}(spy.lastCall));
-                    return retval;
-                }
+            const self = this;
+            PROXY_METHODS.forEach(methodName => {
+                const spy = this._sandbox.spy(self._NodePrototype, methodName);
+                self._NodePrototype[methodName] = new Proxy(spy, {
+                    apply: (target, thisArg, args) => {
+                        const retval = Reflect.apply(target, thisArg, args);
+                        process.nextTick(function (call) {
+                            return () => {
+                                self._NodePrototype.emit.call(thisArg, `call:${methodName}`, call);
+                            }
+                        }(spy.lastCall));
+                        return retval;
+                    }
+                });
             });
-        });
 
 
 
-        if (typeof testCredentials === 'function') {
-            cb = testCredentials;
-            testCredentials = {};
-        }
-
-        var storage = {
-            getFlows: function () {
-                return Promise.resolve({flows:testFlow,credentials:testCredentials});
+            if (typeof testCredentials === 'function') {
+                cb = testCredentials;
+                testCredentials = {};
             }
-        };
-        // this._settings.logging = {console:{level:'off'}};
-        this._settings.available = function() { return false; }
 
-        const redNodes = this._redNodes;
-        this._httpAdmin = express();
-        this._httpAdmin.use(bodyParser.json({limit:'5mb'}));
-        this._httpAdmin.use(bodyParser.urlencoded({limit:'5mb',extended:true}));
-
-        const mockRuntime = {
-            nodes: redNodes,
-            events: this._events,
-            util: this._RED.util,
-            settings: this._settings,
-            storage: storage,
-            log: this._log,
-            nodeApp: express(),
-            adminApp: this._httpAdmin,
-            library: {register: function() {}},
-            get server() { return self._server }
-        }
-
-        redNodes.init(mockRuntime);
-        redNodes.registerType("helper", function (n) {
-            redNodes.createNode(this, n);
-        });
-
-        var red;
-        if (this._registryUtil) {
-            this._registryUtil.init(mockRuntime);
-            red = this._registryUtil.createNodeApi({});
-            red._ = v=>v;
-            red.settings = this._settings;
-        } else {
-            red = {
-                _: v => v
+            var storage = {
+                getFlows: function () {
+                    return Promise.resolve({ flows: testFlow, credentials: testCredentials });
+                }
             };
-            Object.keys(this._RED).filter(prop => !/^(init|start|stop)$/.test(prop))
-                .forEach(prop => {
-                    const propDescriptor = Object.getOwnPropertyDescriptor(this._RED, prop);
-                    Object.defineProperty(red, prop, propDescriptor);
+            // this._settings.logging = {console:{level:'off'}};
+            this._settings.available = function () { return false; }
+
+            const redNodes = this._redNodes;
+            this._httpAdmin = express();
+            this._httpAdmin.use(bodyParser.json({ limit: '5mb' }));
+            this._httpAdmin.use(bodyParser.urlencoded({ limit: '5mb', extended: true }));
+
+            const mockRuntime = {
+                nodes: redNodes,
+                events: this._events,
+                util: this._RED.util,
+                settings: this._settings,
+                storage: storage,
+                log: this._log,
+                nodeApp: express(),
+                adminApp: this._httpAdmin,
+                library: { register: function () { } },
+                get server() { return self._server }
+            }
+
+            redNodes.init(mockRuntime);
+            redNodes.registerType("helper", function (n) {
+                redNodes.createNode(this, n);
+            });
+
+            var red;
+            if (this._registryUtil) {
+                this._registryUtil.init(mockRuntime);
+                red = this._registryUtil.createNodeApi({});
+                red._ = v => v;
+                red.settings = this._settings;
+            } else {
+                red = {
+                    _: v => v
+                };
+                Object.keys(this._RED).filter(prop => !/^(init|start|stop)$/.test(prop))
+                    .forEach(prop => {
+                        const propDescriptor = Object.getOwnPropertyDescriptor(this._RED, prop);
+                        Object.defineProperty(red, prop, propDescriptor);
+                    });
+            }
+
+            if (!Array.isArray(testNode)) {
+                testNode = [testNode];
+            }
+            let uniqueNodes = [...new Set(this._nodeModules.concat(testNode))];
+            uniqueNodes.forEach(fn => fn(red));
+
+            this._cache = redNodes.loadFlows()
+                .then(redNodes.startFlows)
+                .then(() => {
+                    should.deepEqual(testFlow, redNodes.getFlows().flows);
                 });
         }
 
-        let preloadedCoreModules = new Set();
-        testFlow.forEach(n => {
-            if (this._nodeModules.hasOwnProperty(n.type)) {
-                // Go find the 'real' core node module and load it...
-                this._nodeModules[n.type](red);
-                preloadedCoreModules.add(this._nodeModules[n.type]);
-            }
-        })
-
-        if (!Array.isArray(testNode)) {
-            testNode = [testNode];
+        if (!this._cache) {
+            initLoad();
         }
-        testNode.forEach(fn => {
-            if (!preloadedCoreModules.has(fn)) {
-                fn(red);
-            }
-        });
 
-        return redNodes.loadFlows()
-            .then(redNodes.startFlows).then(() => {
-                should.deepEqual(testFlow, redNodes.getFlows().flows);
-                if(cb) cb();
-            });
+        return this._cache.then(() => {
+            if (cb) cb();
+        });
     }
 
     unload() {
+        if (!this._cache) {
+            return Promise.resolve();
+        }
+        this._cache = undefined;
         // TODO: any other state to remove between tests?
         this._redNodes.clearRegistry();
         this._logSpy.restore();
         this._sandbox.restore();
 
         // internal API
-        this._context.clean({allNodes:[]});
+        this._context.clean({ allNodes: [] });
         return this._redNodes.stopFlows();
     }
 
@@ -312,8 +319,8 @@ class NodeTestHelper extends EventEmitter {
             this._app(req, res);
         }), 0);
 
-        this._RED.init(server,{
-            logging:{console:{level:'off'}}
+        this._RED.init(server, {
+            logging: { console: { level: 'off' } }
         });
         server.listen(this._listenPort, this._address);
         server.on('listening', () => {
@@ -346,6 +353,34 @@ class NodeTestHelper extends EventEmitter {
 
     log() {
         return this._logSpy;
+    }
+
+    addListener(id, cb) {
+        const node = this.getNode(id);
+        node.on("input", cb);
+        this._nodeListeners.push({
+            node,
+            listener: cb,
+        });
+    }
+    removeAllListeners() {
+        this._nodeListeners.forEach((element) => {
+            element.node.removeListener("input", element.listener);
+        });
+        this._nodeListeners = [];
+    }
+
+    restart(settings) {
+        return this.unload()
+            .then(() => {
+                return new Promise(done => this.stopServer(done));
+            })
+            .then(() => {
+                if (settings) {
+                    this.settings(settings);
+                }
+                return new Promise(done => this.startServer(done));
+            });
     }
 }
 

@@ -204,13 +204,6 @@ class NodeTestHelper extends EventEmitter {
                 });
             });
 
-
-
-            if (typeof testCredentials === 'function') {
-                cb = testCredentials;
-                testCredentials = {};
-            }
-
             var storage = {
                 getFlows: function () {
                     return Promise.resolve({ flows: testFlow, credentials: testCredentials });
@@ -270,6 +263,11 @@ class NodeTestHelper extends EventEmitter {
                 .then(() => {
                     should.deepEqual(testFlow, redNodes.getFlows().flows);
                 });
+        }
+
+        if (typeof testCredentials === 'function') {
+            cb = testCredentials;
+            testCredentials = {};
         }
 
         if (!this._cache) {

@@ -89,10 +89,6 @@ describe("flow test", () => {
 
                     const inputNode = helper.getNode(inputNodeIds[i]);
                     inputNode.send({ payload: 12345 });
-                    // inputNode.wires[0].forEach((wire) => {
-                    //     const node = helper.getNode(wire);
-                    //     node.receive({ payload: 123450 });
-                    // })
                 });
             });
         }

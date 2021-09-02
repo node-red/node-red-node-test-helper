@@ -4,8 +4,8 @@
   "description": "A test framework for Node-RED nodes",
   "main": "index.js",
   "scripts": {
-    "test": "mocha test/**/*_spec.js",
-    "examples": "mocha examples/**/*_spec.js"
+    "test": "mocha \"test/**/*_spec.js\"",
+    "examples": "mocha \"examples/**/*_spec.js\""
   },
   "license": "Apache-2.0",
   "repository": {

@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha \"test/**/*_spec.js\"",
-    "examples": "mocha \"examples/**/*_spec.js\"",
-    "examples2": "set NODE_PATH=C:\\Users\\Stephen\\repos\\github\\node-red&& mocha \"examples/**/*_spec.js\""
+    "examples": "mocha \"examples/**/*_spec.js\""
   },
   "license": "Apache-2.0",
   "repository": {

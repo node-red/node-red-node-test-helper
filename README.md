@@ -314,7 +314,44 @@ Loads a flow then starts the flow. This function has the following arguments:
 * testNode: (object|array of objects) Module object of a node to be tested returned by require function. This node will be registered, and can be used in testFlows.
 * testFlow: (array of objects) Flow data to test a node. If you want to use flow data exported from Node-RED editor, export the flow to the clipboard and paste the content into your test scripts.
 * testCredentials: (object) Optional node credentials.
-* cb: (function) Function to call back when testFlows has been started.
+* cb: (function) Function to call back when testFlows has been started  (not required when called wih `await`)
+
+### setFlows(testFlow, type, testCredentials, cb)
+
+Updates the currently loaded flow. This function has the following arguments:
+
+* testFlow: (array of objects) Flow data to test a node. If you want to use flow data exported from Node-RED editor, export the flow to the clipboard and paste the content into your test scripts.
+* type: (string) Flow data to test a node. If you want to use flow data exported from Node-RED editor, export the flow to the clipboard and paste the content into your test scripts.
+* testCredentials: (object) Optional node credentials.
+* cb: (function) Function to call back when testFlows has been loaded (not required when called wih `await`)
+
+#### Example
+
+```js
+  it('should modify the flow then lower case of payload', async function () {
+      const flow = [
+            { id: "n2", type: "helper" }
+      ]
+      await helper.load(lowerNode, flow)
+      const newFlow = [...flow]
+      newFlow.push( { id: "n1", type: "lower-case", name: "lower-case", wires:[['n2']] },)
+      await helper.setFlows(newFlow, "nodes") //update flows
+      const n1 = helper.getNode('n1')
+      n1.should.have.a.property('name', 'lower-case')
+      await new Promise((resolve, reject) => {
+        const n2 = helper.getNode('n2')
+        n2.on('input', function (msg) {
+            try {
+                msg.should.have.property('payload', 'hello');
+                resolve()
+            } catch (err) {
+                reject(err);
+            }
+        });
+        n1.receive({ payload: 'HELLO' });
+      });
+  });
+```
 
 ### unload()
 

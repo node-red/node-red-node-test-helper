@@ -199,15 +199,19 @@ class NodeTestHelper extends EventEmitter {
         });
 
 
-
         if (typeof testCredentials === 'function') {
             cb = testCredentials;
             testCredentials = {};
         }
-
-        var storage = {
+        const conf = {flows:testFlow,credentials:testCredentials|| {}}
+        const storage = {
+            conf: conf,
             getFlows: function () {
-                return Promise.resolve({flows:testFlow,credentials:testCredentials});
+                return Promise.resolve(conf);
+            },
+            saveFlows: function(conf) {
+                storage.conf = conf;
+                return Promise.resolve();
             }
         };
         // this._settings.logging = {console:{level:'off'}};
@@ -281,7 +285,7 @@ class NodeTestHelper extends EventEmitter {
     unload() {
         // TODO: any other state to remove between tests?
         this._redNodes.clearRegistry();
-        this._logSpy.restore();
+        this._logSpy && this._logSpy.restore();
         this._sandbox.restore();
 
         // internal API
@@ -300,6 +304,49 @@ class NodeTestHelper extends EventEmitter {
 
     clearFlows() {
         return this._redNodes.stopFlows();
+    }
+
+    /**
+     * Update flows
+     * @param {object|object[]} testFlow Flow data to test a node
+     * @param {"full"|"flows"|"nodes"} type The type of deploy mode "full", "flows" or "nodes" (defaults to "full") 
+     * @param {object} [testCredentials] Optional node credentials
+     * @param {function} [cb] Optional callback (not required when called with await)
+     * @returns {Promise}
+     */
+    setFlows(testFlow, type, testCredentials, cb) {
+        const helper = this;
+        if (typeof testCredentials === 'string' ) {
+            cb = testCredentials;
+            testCredentials = {};
+        }
+        if(!type || typeof type != "string") {
+            type = "full"
+        }
+        async function waitStarted() {
+            return new Promise((resolve, reject) => {
+                let timeover = setTimeout(() => {
+                    if (timeover) {
+                        timeover = null
+                        reject(Error("timeout waiting event"))
+                    }
+                }, 300);
+                function hander() {
+                    clearTimeout(timeover)
+                    helper._events.off('flows:started', hander)
+                    if (timeover) {
+                        timeover = null
+                        resolve()
+                    }
+                }
+                helper._events.on('flows:started', hander); // call resolve when its done
+            });
+        }
+        return this._redNodes.setFlows(testFlow, testCredentials || {}, type)
+            .then(waitStarted)
+            .then(() => {
+                if(cb) cb();
+            });
     }
 
     request() {

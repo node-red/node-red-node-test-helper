@@ -54,4 +54,28 @@ describe('lower-case Node', function () {
       n1.receive({ payload: "UpperCase" });
     });
   });
+  it('should modify the flow then lower case of payload', async function () {
+      const flow = [
+            { id: "n2", type: "helper" }
+      ]
+      await helper.load(lowerNode, flow)
+      
+      const newFlow = [...flow]
+      newFlow.push( { id: "n1", type: "lower-case", name: "lower-case", wires:[['n2']] },)
+      await helper.setFlows(newFlow)
+      const n1 = helper.getNode('n1')
+      n1.should.have.a.property('name', 'lower-case')
+      await new Promise((resolve, reject) => {
+        const n2 = helper.getNode('n2')
+        n2.on('input', function (msg) {
+            try {
+                msg.should.have.property('payload', 'hello');
+                resolve()
+            } catch (err) {
+                reject(err);
+            }
+        });
+        n1.receive({ payload: 'HELLO' });
+      });
+  });
 });

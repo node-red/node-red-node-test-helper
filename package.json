@@ -1,6 +1,6 @@
 {
   "name": "node-red-node-test-helper",
-  "version": "0.2.7",
+  "version": "0.3.0",
   "description": "A test framework for Node-RED nodes",
   "main": "index.js",
   "scripts": {
@@ -13,18 +13,18 @@
     "url": "https://github.com/node-red/node-red-node-test-helper.git"
   },
   "dependencies": {
-    "express": "4.17.1",
-    "body-parser": "1.19.0",
+    "body-parser": "1.20.0",
+    "express": "4.18.1",
     "read-pkg-up": "7.0.1",
-    "semver": "7.3.4",
+    "semver": "7.3.7",
     "should": "^13.2.3",
     "should-sinon": "0.0.6",
-    "sinon": "9.2.4",
+    "sinon": "11.1.2",
     "stoppable": "1.1.0",
-    "supertest": "4.0.2"
+    "supertest": "6.2.3"
   },
   "devDependencies": {
-    "mocha": "~7.1.2"
+    "mocha": "9.2.2"
   },
   "contributors": [
     {
@@ -46,6 +46,6 @@
     "node-red"
   ],
   "engines": {
-    "node": ">=8"
+    "node": ">=14"
   }
 }

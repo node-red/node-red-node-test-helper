@@ -134,7 +134,7 @@ To send a message into the `lower-case` node `n1` under test we call `n1.receive
 
 ## Working with Spies
 
-A Spy ([docs](http://sinonjs.org/releases/v5.0.6/spies/)) helps you collect information about how many times a function was called, with what, what it returned, etc.
+A Spy ([docs](https://sinonjs.org/releases/v14/spies/)) helps you collect information about how many times a function was called, with what, what it returned, etc.
 
 This helper library automatically creates spies for the following functions on `Node.prototype` (these are the same functions as mentioned in the ["Creating Nodes" guide](https://nodered.org/docs/creating-nodes/node-js)):
 

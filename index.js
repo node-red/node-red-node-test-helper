@@ -256,12 +256,16 @@ class NodeTestHelper extends EventEmitter {
                     Object.defineProperty(red, prop, propDescriptor);
                 });
         }
+        const initPromises = []
 
         let preloadedCoreModules = new Set();
         testFlow.forEach(n => {
             if (this._nodeModules.hasOwnProperty(n.type)) {
                 // Go find the 'real' core node module and load it...
-                this._nodeModules[n.type](red);
+                const result = this._nodeModules[n.type](red);
+                if (result?.then) {
+                    initPromises.push(result)
+                }
                 preloadedCoreModules.add(this._nodeModules[n.type]);
             }
         })
@@ -271,12 +275,17 @@ class NodeTestHelper extends EventEmitter {
         }
         testNode.forEach(fn => {
             if (!preloadedCoreModules.has(fn)) {
-                fn(red);
+                const result = fn(red);
+                if (result?.then) {
+                    initPromises.push(result)
+                }
             }
         });
 
-        return redNodes.loadFlows()
-            .then(redNodes.startFlows).then(() => {
+        return Promise.all(initPromises)
+            .then(redNodes.loadFlows)
+            .then(redNodes.startFlows)
+            .then(() => {
                 should.deepEqual(testFlow, redNodes.getFlows().flows);
                 if(cb) cb();
             });

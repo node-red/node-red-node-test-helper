@@ -1,3 +1,7 @@
+#### 0.3.1
+ 
+ - Add support for async node modules (#63) @knolleary
+
 #### 0.3.0
 
  - Require node.js >=14

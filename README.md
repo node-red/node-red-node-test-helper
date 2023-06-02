@@ -395,14 +395,14 @@ Starts a Node-RED server for testing nodes that depend on http or web sockets en
 To start a Node-RED server before all test cases:
 
 ```javascript
-before(function(done) {
+beforeEach(function(done) {
     helper.startServer(done);
 });
 ```
 
 ### stopServer(done)
 
-Stop server.  Generally called after unload() complete.  For example, to unload a flow then stop a server after each test:
+Stop server. Generally called after unload() complete. For example, to unload a flow then stop a server after each test:
 
 ```javascript
 afterEach(function(done) {

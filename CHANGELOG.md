@@ -1,7 +1,7 @@
 #### 0.3.2
  
- - Fix async module loading @knolleary
-
+ - Fix async module loading (#65) @knolleary
+ - Update README.md (#61) @andreasmarkussen
 
 #### 0.3.1
  

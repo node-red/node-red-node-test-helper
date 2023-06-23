@@ -234,7 +234,6 @@ class NodeTestHelper extends EventEmitter {
             library: {register: function() {}},
             get server() { return self._server }
         }
-
         redNodes.init(mockRuntime);
         redNodes.registerType("helper", function (n) {
             redNodes.createNode(this, n);
@@ -281,10 +280,9 @@ class NodeTestHelper extends EventEmitter {
                 }
             }
         });
-
         return Promise.all(initPromises)
-            .then(redNodes.loadFlows)
-            .then(redNodes.startFlows)
+            .then(() => redNodes.loadFlows())
+            .then(() => redNodes.startFlows())
             .then(() => {
                 should.deepEqual(testFlow, redNodes.getFlows().flows);
                 if(cb) cb();
@@ -299,7 +297,7 @@ class NodeTestHelper extends EventEmitter {
 
         // internal API
         this._context.clean({allNodes:[]});
-        return this._redNodes.stopFlows();
+        return this._redNodes.stopFlows()
     }
 
     /**

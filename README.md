@@ -421,8 +421,8 @@ Return the URL of the helper server including the ephemeral port used when start
 Return a spy on the logs to look for events from the node under test.  For example:
 
 ```javascript
-var logEvents = helper.log().args.filter(function(evt {
-    return evt[0].type == "batch";
+var logEvents = helper.log().args.filter(function(event) {
+    return event[0].type == "batch";
 });
 ```
 

@@ -1,3 +1,8 @@
+#### 0.3.2
+ 
+ - Fix async module loading @knolleary
+
+
 #### 0.3.1
  
  - Add support for async node modules (#63) @knolleary

@@ -1,3 +1,8 @@
+#### 0.3.3
+
+ - Add plugin stub to runtime (#73) @joepavitt
+ - Use compatible versions rather than specific version of dependencies (#70) @Pezmc
+
 #### 0.3.2
  
  - Fix async module loading (#65) @knolleary

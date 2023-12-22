@@ -214,6 +214,20 @@ class NodeTestHelper extends EventEmitter {
                 return Promise.resolve();
             }
         };
+
+        // mock out the runtime plugins api
+        const plugins = {
+            registerPlugin () {
+                return;
+            },
+            getPlugin () {
+                return;
+            },
+            getPluginsByType () {
+                return [];
+            }
+        }
+
         // this._settings.logging = {console:{level:'off'}};
         this._settings.available = function() { return false; }
 
@@ -228,6 +242,7 @@ class NodeTestHelper extends EventEmitter {
             util: this._RED.util,
             settings: this._settings,
             storage: storage,
+            plugins: plugins,
             log: this._log,
             nodeApp: express(),
             adminApp: this._httpAdmin,

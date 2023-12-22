@@ -232,6 +232,8 @@ class NodeTestHelper extends EventEmitter {
             nodeApp: express(),
             adminApp: this._httpAdmin,
             library: {register: function() {}},
+            hooks: this._RED.hooks,
+            plugins: this._RED.plugins,
             get server() { return self._server }
         }
         redNodes.init(mockRuntime);

@@ -1,3 +1,7 @@
+#### 0.3.4
+
+ - Update dependencies
+
 #### 0.3.3
 
  - Add plugin stub to runtime (#73) @joepavitt

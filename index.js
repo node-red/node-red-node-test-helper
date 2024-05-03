@@ -16,6 +16,7 @@
 'use strict';
 
 const path = require("path");
+const process = require("process")
 const sinon = require("sinon");
 const should = require('should');
 const fs = require('fs');
@@ -25,17 +26,35 @@ var bodyParser = require("body-parser");
 const express = require("express");
 const http = require('http');
 const stoppable = require('stoppable');
-const readPkgUp = require('read-pkg-up');
 const semver = require('semver');
 const EventEmitter = require('events').EventEmitter;
 
 const PROXY_METHODS = ['log', 'status', 'warn', 'error', 'debug', 'trace', 'send'];
 
+
+// Find the nearest package.json
+function findPackageJson(dir) {
+    dir = path.resolve(dir || process.cwd())
+    const { root } = path.parse(dir)
+    if (dir === root) {
+        return null
+    }
+    const packagePath = path.join(dir, 'package.json')
+    if (fs.existsSync(packagePath)) {
+        return {
+            path: packagePath,
+            packageJson: JSON.parse(fs.readFileSync(packagePath, 'utf-8'))
+        }
+    } else {
+        return findPackageJson(path.resolve(path.join(dir, '..')))
+    }
+}
+
 /**
  * Finds the NR runtime path by inspecting environment
  */
 function findRuntimePath() {
-    const upPkg = readPkgUp.sync();
+    const upPkg = findPackageJson()
     // case 1: we're in NR itself
     if (upPkg.packageJson.name === 'node-red') {
         if (checkSemver(upPkg.packageJson.version,"<0.20.0")) {

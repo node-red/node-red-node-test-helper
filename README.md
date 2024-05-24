@@ -357,6 +357,12 @@ Updates the currently loaded flow. This function has the following arguments:
 
 Return promise to stop all flows, clean up test runtime.
 
+```javascript
+afterEach(function() {
+    helper.unload();
+});
+```
+
 ### getNode(id)
 
 Returns a node instance by id in the testFlow. Any node that is defined in testFlows can be retrieved, including any helper node added to the flow.
@@ -402,13 +408,11 @@ before(function(done) {
 
 ### stopServer(done)
 
-Stop server.  Generally called after unload() complete.  For example, to unload a flow then stop a server after each test:
+Stop server. Generally called after unload() complete. For example, to unload a flow then stop a server after each test:
 
 ```javascript
-afterEach(function(done) {
-    helper.unload().then(function() {
-        helper.stopServer(done);
-    });
+after(function(done) {
+    helper.stopServer(done);
 });
 ```
 

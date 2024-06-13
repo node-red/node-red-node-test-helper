@@ -315,7 +315,18 @@ class NodeTestHelper extends EventEmitter {
             }
         });
         return Promise.all(initPromises)
-            .then(() => redNodes.loadFlows())
+            .then(() => {
+                const waitForDeploy = new Promise(resolve => {
+                    const deployListener = event => {
+                        if (event?.id === "runtime-deploy") {
+                            mockRuntime.events.removeListener("runtime-event", deployListener);
+                            resolve();
+                        }
+                    }
+                    mockRuntime.events.addListener("runtime-event", deployListener);
+                });
+                return redNodes.loadFlows().then(waitForDeploy);
+            })
             .then(() => redNodes.startFlows())
             .then(() => {
                 should.deepEqual(testFlow, redNodes.getFlows().flows);

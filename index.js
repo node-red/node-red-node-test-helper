@@ -394,37 +394,55 @@ class NodeTestHelper extends EventEmitter {
         return request(this._httpAdmin);
     }
 
-    startServer(done) {
-        this._app = express();
-        const server = stoppable(http.createServer((req, res) => {
-            this._app(req, res);
-        }), 0);
-
-        this._RED.init(server,{
-            logging:{console:{level:'off'}}
-        });
-        server.listen(this._listenPort, this._address);
-        server.on('listening', () => {
-            this._port = server.address().port;
-            // internal API
-            this._comms.start();
-            done();
-        });
-        this._server = server;
+    async startServer(done) {
+        try {
+            await new Promise((resolve, reject) => {
+                this._app = express();
+                const server = stoppable(
+                    http.createServer((req, res) => this._app(req, res)),
+                    0
+                );
+    
+                this._RED.init(server, {
+                    logging: { console: { level: 'off' } },
+                });
+    
+                server.listen(this._listenPort, this._address);
+    
+                server.on('listening', () => {
+                    this._port = server.address().port;
+                    this._comms.start();
+                    this._server = server;
+                    resolve();
+                });
+    
+                server.on('error', reject);
+            });
+    
+            if (done) done();
+        } catch (err) {
+            if (done) done(err);
+            else throw err;
+        }
     }
-
-    //TODO consider saving TCP handshake/server reinit on start/stop/start sequences
-    stopServer(done) {
-        if (this._server) {
-            try {
-                // internal API
-                this._comms.stop();
-                this._server.stop(done);
-            } catch (e) {
-                done();
+    
+    async stopServer(done) {
+        try {
+            if (this._server) {
+                await new Promise((resolve, reject) => {
+                    this._comms.stop();
+    
+                    this._server.stop((err) => {
+                        if (err) reject(err);
+                        else resolve();
+                    });
+                });
             }
-        } else {
-            done();
+    
+            if (done) done();
+        } catch (err) {
+            if (done) done(err);
+            else throw err;
         }
     }
 

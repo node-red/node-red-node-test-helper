@@ -192,7 +192,7 @@ class NodeTestHelper extends EventEmitter {
         return this._settings;
     }
 
-    load(testNode, testFlow, testCredentials, cb) {
+    async load(testNode, testFlow, testCredentials, cb) {
         const log = this._log;
         const logSpy = this._logSpy = this._sandbox.spy(log, 'log');
         logSpy.FATAL = log.FATAL;
@@ -314,13 +314,16 @@ class NodeTestHelper extends EventEmitter {
                 }
             }
         });
-        return Promise.all(initPromises)
-            .then(() => redNodes.loadFlows())
-            .then(() => redNodes.startFlows())
-            .then(() => {
-                should.deepEqual(testFlow, redNodes.getFlows().flows);
-                if(cb) cb();
-            });
+        try {
+            await Promise.all(initPromises);
+            await redNodes.loadFlows();
+            await redNodes.startFlows();
+            should.deepEqual(testFlow, redNodes.getFlows().flows);
+            if (cb) cb();
+        } catch (error) {
+            if (cb) cb(error);
+            else throw error;
+        }
     }
 
     unload() {
@@ -355,7 +358,7 @@ class NodeTestHelper extends EventEmitter {
      * @param {function} [cb] Optional callback (not required when called with await)
      * @returns {Promise}
      */
-    setFlows(testFlow, type, testCredentials, cb) {
+    async setFlows(testFlow, type, testCredentials, cb) {
         const helper = this;
         if (typeof testCredentials === 'string' ) {
             cb = testCredentials;
@@ -383,18 +386,22 @@ class NodeTestHelper extends EventEmitter {
                 helper._events.on('flows:started', hander); // call resolve when its done
             });
         }
-        return this._redNodes.setFlows(testFlow, testCredentials || {}, type)
-            .then(waitStarted)
-            .then(() => {
-                if(cb) cb();
-            });
+        try {
+            await this._redNodes.setFlows(testFlow, testCredentials || {}, type);
+            await waitStarted();
+            
+            if (cb) cb();
+        } catch (error) {
+            if (cb) cb(error);
+            else throw error;
+        }
     }
 
     request() {
         return request(this._httpAdmin);
     }
 
-    async startServer(done) {
+    async startServer(cb) {
         try {
             await new Promise((resolve, reject) => {
                 this._app = express();
@@ -419,14 +426,14 @@ class NodeTestHelper extends EventEmitter {
                 server.on('error', reject);
             });
     
-            if (done) done();
+            if (cb) cb();
         } catch (err) {
-            if (done) done(err);
+            if (cb) cb(err);
             else throw err;
         }
     }
     
-    async stopServer(done) {
+    async stopServer(cb) {
         try {
             if (this._server) {
                 await new Promise((resolve, reject) => {
@@ -439,9 +446,9 @@ class NodeTestHelper extends EventEmitter {
                 });
             }
     
-            if (done) done();
+            if (cb) cb();
         } catch (err) {
-            if (done) done(err);
+            if (cb) cb(err);
             else throw err;
         }
     }

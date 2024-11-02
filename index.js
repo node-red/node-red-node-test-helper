@@ -427,9 +427,9 @@ class NodeTestHelper extends EventEmitter {
             });
     
             if (cb) cb();
-        } catch (err) {
-            if (cb) cb(err);
-            else throw err;
+        } catch (error) {
+            if (cb) cb(error);
+            else throw error;
         }
     }
     
@@ -439,17 +439,17 @@ class NodeTestHelper extends EventEmitter {
                 await new Promise((resolve, reject) => {
                     this._comms.stop();
     
-                    this._server.stop((err) => {
-                        if (err) reject(err);
+                    this._server.stop((error) => {
+                        if (error) reject(error);
                         else resolve();
                     });
                 });
             }
     
             if (cb) cb();
-        } catch (err) {
-            if (cb) cb(err);
-            else throw err;
+        } catch (error) {
+            if (cb) cb(error);
+            else throw error;
         }
     }
 

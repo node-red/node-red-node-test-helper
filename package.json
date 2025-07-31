@@ -20,7 +20,7 @@
     "should-sinon": "^0.0.6",
     "sinon": "^11.1.2",
     "stoppable": "^1.1.0",
-    "supertest": "^7.0.0"
+    "supertest": "^7.1.4"
   },
   "devDependencies": {
     "mocha": "^9.2.2"

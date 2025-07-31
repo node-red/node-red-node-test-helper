@@ -1,6 +1,6 @@
 {
   "name": "node-red-node-test-helper",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "A test framework for Node-RED nodes",
   "main": "index.js",
   "scripts": {
@@ -23,7 +23,7 @@
     "supertest": "^7.1.4"
   },
   "devDependencies": {
-    "mocha": "^9.2.2"
+    "mocha": "^11.7.1"
   },
   "contributors": [
     {

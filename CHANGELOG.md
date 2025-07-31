@@ -1,3 +1,11 @@
+#### 0.3.5
+
+ - Update mocha
+ - Bump supertest (#83) @hardillb
+ - feat: make load, setFlows async/await (enable vitest) (#82) @AllanOricil
+ - feat: enable async start/stop server (#81) @AllanOricil
+ - Bump express.js and body-parser (#79) @hardillb
+
 #### 0.3.4
 
  - Update dependencies

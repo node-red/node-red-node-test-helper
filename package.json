@@ -1,6 +1,6 @@
 {
   "name": "node-red-node-test-helper",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "description": "A test framework for Node-RED nodes",
   "main": "index.js",
   "scripts": {

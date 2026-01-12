@@ -1,3 +1,7 @@
+#### 0.3.6
+
+ - Update express dependency to version 4.22.1 (#85) @hardillb
+
 #### 0.3.5
 
  - Update mocha

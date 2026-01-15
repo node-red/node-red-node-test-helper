@@ -353,7 +353,7 @@ class NodeTestHelper extends EventEmitter {
     /**
      * Update flows
      * @param {object|object[]} testFlow Flow data to test a node
-     * @param {"full"|"flows"|"nodes"} type The type of deploy mode "full", "flows" or "nodes" (defaults to "full") 
+     * @param {"full"|"flows"|"nodes"} type The type of deploy mode "full", "flows" or "nodes" (defaults to "full")
      * @param {object} [testCredentials] Optional node credentials
      * @param {function} [cb] Optional callback (not required when called with await)
      * @returns {Promise}
@@ -389,7 +389,7 @@ class NodeTestHelper extends EventEmitter {
         try {
             await this._redNodes.setFlows(testFlow, testCredentials || {}, type);
             await waitStarted();
-            
+
             if (cb) cb();
         } catch (error) {
             if (cb) cb(error);
@@ -409,43 +409,43 @@ class NodeTestHelper extends EventEmitter {
                     http.createServer((req, res) => this._app(req, res)),
                     0
                 );
-    
+
                 this._RED.init(server, {
                     logging: { console: { level: 'off' } },
                 });
-    
+
                 server.listen(this._listenPort, this._address);
-    
+
                 server.on('listening', () => {
                     this._port = server.address().port;
                     this._comms.start();
                     this._server = server;
                     resolve();
                 });
-    
+
                 server.on('error', reject);
             });
-    
+
             if (cb) cb();
         } catch (error) {
             if (cb) cb(error);
             else throw error;
         }
     }
-    
+
     async stopServer(cb) {
         try {
             if (this._server) {
                 await new Promise((resolve, reject) => {
                     this._comms.stop();
-    
+
                     this._server.stop((error) => {
                         if (error) reject(error);
                         else resolve();
                     });
                 });
             }
-    
+
             if (cb) cb();
         } catch (error) {
             if (cb) cb(error);

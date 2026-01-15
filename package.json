@@ -12,6 +12,11 @@
     "type": "git",
     "url": "https://github.com/node-red/node-red-node-test-helper.git"
   },
+  "overrides": {
+    "mocha": {
+      "diff": "^8.0.3"
+    }
+  },
   "dependencies": {
     "body-parser": "^1.20.4",
     "express": "^4.22.1",

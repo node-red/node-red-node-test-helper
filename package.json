@@ -23,7 +23,8 @@
     "supertest": "^7.1.4"
   },
   "devDependencies": {
-    "mocha": "^11.7.1"
+    "mocha": "^11.7.1",
+    "node-red": "^4.1.3"
   },
   "contributors": [
     {
